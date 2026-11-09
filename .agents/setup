@@ -1,0 +1,37 @@
+#!/usr/bin/env bash
+# Prepares a fresh Amp orb: a Python virtualenv in .venv with requirements.txt installed,
+# and .venv/bin on PATH for later login shells (Amp, the terminal, and supervised services).
+set -euo pipefail
+
+repo_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+cd "$repo_root"
+
+step() { printf '\n==> %s\n' "$*"; }
+timed() { local start=$SECONDS; "$@"; printf '    (%ss)\n' "$((SECONDS - start))"; }
+
+step "Python virtualenv"
+if [[ ! -x .venv/bin/python ]]; then
+  timed uv venv --python 3.11 .venv
+else
+  echo "    .venv exists: $(.venv/bin/python --version)"
+fi
+
+step "Python dependencies"
+timed uv pip install --python .venv/bin/python -r requirements.txt
+
+step "PATH for login shells"
+profile_marker="# elevenlabs-ai-widget virtualenv"
+if ! grep -Fqx "$profile_marker" "$HOME/.bash_profile" 2>/dev/null; then
+  cat >> "$HOME/.bash_profile" <<EOF
+
+$profile_marker
+export VIRTUAL_ENV="$repo_root/.venv"
+case ":\$PATH:" in
+  *":$repo_root/.venv/bin:"*) ;;
+  *) export PATH="$repo_root/.venv/bin:\$PATH" ;;
+esac
+EOF
+  echo "    added .venv/bin to ~/.bash_profile"
+else
+  echo "    already in ~/.bash_profile"
+fi

@@ -223,3 +223,6 @@ __marimo__/
 # DATABASE
 data.db
 uploads/
+
+# Amp orb portal state, generated per orb
+.amp/portals/
