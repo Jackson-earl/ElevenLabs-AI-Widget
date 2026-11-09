@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% block main_class %}wide{% endblock %}
+{% block style %}
+  nav { margin-bottom: 24px; font-size: 14px; }
+  table { width: 100%; border-collapse: collapse; background: #fff; border: 1px solid var(--line); border-radius: 8px; }
+  th, td { text-align: left; padding: 10px 12px; border-bottom: 1px solid var(--line); vertical-align: top; }
+  th { font-size: 13px; color: var(--muted); font-weight: 600; }
+  tr:last-child td { border-bottom: 0; }
+  td.muted, .muted { color: var(--muted); font-size: 14px; }
+  .status { display: inline-block; padding: 2px 8px; font-size: 13px; font-weight: 600; border-radius: 999px; background: #f2f4f7; color: #344054; white-space: nowrap; }
+  .status.ready_for_review { background: #eff4ff; color: #2d5bff; }
+  .status.approved { background: #ecfdf3; color: #05603a; }
+  .status.failed { background: #fef3f2; color: var(--error); }
+  .status.building, .status.queued { background: #fffaeb; color: #93370d; }
+  dl { display: grid; grid-template-columns: max-content 1fr; gap: 6px 16px; margin: 0; }
+  dt { color: var(--muted); }
+  dd { margin: 0; min-width: 0; overflow-wrap: anywhere; }
+  pre { white-space: pre-wrap; overflow-wrap: anywhere; font-size: 13px; background: #fff; border: 1px solid var(--line); border-radius: 8px; padding: 12px; }
+  .actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+  .actions form { margin: 0; }
+  .actions button { margin: 0; }
+  button.secondary { background: #fff; color: var(--text); border: 1px solid var(--line); }
+  button.danger { background: #fff; color: var(--error); border: 1px solid #fecdca; }
+{% endblock %}

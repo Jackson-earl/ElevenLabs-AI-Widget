@@ -1,0 +1,27 @@
+{% extends "admin_base.html" %}
+{% block title %}Requests: admin{% endblock %}
+{% block content %}
+<h1>Requests</h1>
+<p class="lead">Every intake form submission, newest first.{% if refresh %} This page refreshes itself while builds are running.{% endif %}</p>
+
+{% if rows %}
+<table>
+  <thead>
+    <tr><th>#</th><th>Company</th><th>Status</th><th>Progress</th><th>Submitted</th></tr>
+  </thead>
+  <tbody>
+  {% for r in rows %}
+    <tr>
+      <td class="muted">{{ r.id }}</td>
+      <td><a href="{{ url_for('admin_review', request_id=r.id) }}">{{ r.company }}</a><br><span class="muted">{{ r.website }}</span></td>
+      <td><span class="status {{ r.status }}">{{ r.status.replace('_', ' ') }}</span></td>
+      <td class="muted">{{ (r.progress or 'Starting') if r.status == 'building' else '' }}</td>
+      <td class="muted">{{ r.created_at | ago }}</td>
+    </tr>
+  {% endfor %}
+  </tbody>
+</table>
+{% else %}
+<p>No requests yet. Submit the <a href="{{ url_for('intake') }}">intake form</a> to make one.</p>
+{% endif %}
+{% endblock %}

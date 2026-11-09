@@ -1,0 +1,58 @@
+{% extends "admin_base.html" %}
+{% block title %}{{ r.company }}: admin{% endblock %}
+{% block content %}
+<nav><a href="{{ url_for('admin_list') }}">&larr; All requests</a></nav>
+<h1>{{ r.company }}</h1>
+<p><span class="status {{ r.status }}">{{ r.status.replace('_', ' ') }}</span>
+  {% if r.status in ('queued', 'building') %}<span class="muted">{{ r.progress or 'Waiting for the worker' }}. This page refreshes itself.</span>{% endif %}</p>
+
+{% if r.error %}
+  <h2>What went wrong</h2>
+  <pre>{{ r.error }}</pre>
+{% endif %}
+
+{% if actions %}
+<div class="actions">
+  {% if 'approve' in actions %}
+    <form method="post" action="{{ url_for('admin_action', request_id=r.id, action='approve') }}"><button>Approve</button></form>
+  {% endif %}
+  {% if 'rebuild' in actions %}
+    <form method="post" action="{{ url_for('admin_action', request_id=r.id, action='rebuild') }}"
+          onsubmit="return confirm('Crawl the site again and build a new agent?')"><button class="secondary">Rebuild</button></form>
+  {% endif %}
+  {% if 'reject' in actions %}
+    <form method="post" action="{{ url_for('admin_action', request_id=r.id, action='reject') }}"
+          onsubmit="return confirm('Reject this request?')"><button class="danger">Reject</button></form>
+  {% endif %}
+</div>
+{% endif %}
+
+<h2>Request</h2>
+<dl>
+  <dt>Website</dt><dd><a href="{{ r.website }}" target="_blank" rel="noopener">{{ r.website }}</a></dd>
+  <dt>Email</dt><dd>{{ r.contact_email }}</dd>
+  <dt>Submitted</dt><dd>{{ r.created_at | ago }}</dd>
+  <dt>Files</dt><dd>{{ files | join(', ') if files else 'None' }}</dd>
+  {% if r.agent_id %}
+    <dt>Agent</dt><dd><a href="https://elevenlabs.io/app/agents/agents/{{ r.agent_id }}" target="_blank" rel="noopener">Open in ElevenLabs</a> <span class="muted">{{ r.agent_id }}</span></dd>
+  {% endif %}
+</dl>
+
+{% if r.agent_id %}
+  <h2>Test the agent</h2>
+  <p class="muted">Use the widget at the bottom right of this page. It's the same one the client will put on their site. Ask what they offer, what it costs, when they're open, something the site doesn't cover, and something off-topic.</p>
+  {# Jinja escapes agent_id, so even an odd value can't break out of the attribute. #}
+  <elevenlabs-convai agent-id="{{ r.agent_id }}"></elevenlabs-convai>
+  <script src="https://unpkg.com/@elevenlabs/convai-widget-embed" async type="text/javascript"></script>
+{% endif %}
+
+<h2>Company facts</h2>
+<p class="muted">{% if r.facts_doc_id %}Saving updates the agent's facts document in ElevenLabs right away, with no rebuild.{% else %}This agent has no facts document yet. Saved facts are used by the next build.{% endif %}</p>
+<form method="post" action="{{ url_for('admin_save_facts', request_id=r.id) }}">
+  {% for key, label, hint in fields %}
+    <label for="{{ key }}">{{ label }}</label>
+    <textarea id="{{ key }}" name="{{ key }}">{{ r.facts.get(key, '') }}</textarea>
+  {% endfor %}
+  <button {% if r.status == 'building' %}disabled{% endif %}>Save facts</button>
+</form>
+{% endblock %}
