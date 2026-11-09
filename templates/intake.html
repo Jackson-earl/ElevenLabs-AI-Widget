@@ -7,30 +7,36 @@
 
 {# enctype is required for file uploads; without it the browser sends only the file names. #}
 <form method="post" enctype="multipart/form-data">
-  <label for="company">Company name</label>
-  <input type="text" id="company" name="company" value="{{ form.get('company', '') }}" required>
+  <section class="card">
+    <h2>Your details</h2>
 
-  <label for="website">Website</label>
-  <input type="text" id="website" name="website" value="{{ form.get('website', '') }}" placeholder="yourcompany.com" required>
+    <label for="company">Company name</label>
+    <input type="text" id="company" name="company" value="{{ form.get('company', '') }}" required>
 
-  <label for="email">Your email <span class="hint">We'll send your assistant here when it's ready.</span></label>
-  <input type="email" id="email" name="email" value="{{ form.get('email', '') }}" required>
+    <label for="website">Website</label>
+    <input type="text" id="website" name="website" value="{{ form.get('website', '') }}" placeholder="yourcompany.com" required>
 
-  <h2>About your business <span class="optional">(optional)</span></h2>
-  <p class="lead">Anything you write here overrides what's on your website, so use it for details that must be exactly right.</p>
-  {% for key, label, hint in fields %}
-    <label for="{{ key }}">{{ label }} <span class="hint">{{ hint }}</span></label>
-    <!-- {% if key == "booking_link" %}
-      <input type="url" id="{{ key }}" name="{{ key }}" value="{{ form.get(key, '') }}" placeholder="https://calendly.com/you">
-    {% else %} -->
+    <label for="email">Your email <span class="hint">We'll send your assistant here when it's ready.</span></label>
+    <input type="email" id="email" name="email" value="{{ form.get('email', '') }}" required>
+  </section>
+
+  <section class="card">
+    <h2>About your business <span class="optional">(optional)</span></h2>
+    <p>Anything you write here overrides what's on your website, so use it for details that must be exactly right.</p>
+    {% for key, label, hint in fields %}
+      <label for="{{ key }}">{{ label }} <span class="hint">{{ hint }}</span></label>
       <textarea id="{{ key }}" name="{{ key }}">{{ form.get(key, '') }}</textarea>
-    <!-- {% endif %} -->
-  {% endfor %}
+    {% endfor %}
+  </section>
 
-  <h2>Documents <span class="optional">(optional)</span></h2>
-  <label for="files">Price lists, FAQs, policies <span class="hint">Up to 5 files, 20 MB each: PDF, Word, text, Markdown, HTML, or EPUB</span></label>
-  <input type="file" id="files" name="files" multiple accept=".pdf,.docx,.txt,.md,.html,.epub">
+  <section class="card">
+    <h2>Documents <span class="optional">(optional)</span></h2>
+    <label for="files">Price lists, FAQs, policies <span class="hint">Up to 5 files, 20 MB each: PDF, Word, text, Markdown, HTML, or EPUB</span></label>
+    <input type="file" id="files" name="files" multiple accept=".pdf,.docx,.txt,.md,.html,.epub">
+  </section>
 
-  <button type="submit">Build my assistant</button>
+  <div class="form-actions">
+    <button type="submit">Build my assistant</button>
+  </div>
 </form>
 {% endblock %}
