@@ -1,0 +1,46 @@
+/* Extra styles for the demo pages. Loaded after main.css. */
+
+/* ---------------------------------------------------------------- Demo form */
+
+/* A trap for spam bots: moved off-screen, so people never see or fill it in. */
+.trap { position: absolute; left: -10000px; }
+
+/* ---------------------------------------------------------------- Demo page */
+
+/* The homepage picture fills the window behind everything. It's only a picture, so it ignores clicks. */
+.site {
+  position: fixed;
+  inset: 0;
+  background: var(--bg) left top / cover no-repeat;
+  pointer-events: none;
+}
+.site.plain { display: grid; place-content: center; text-align: center; color: var(--muted); }
+.site.plain strong { display: block; font-size: 32px; line-height: 1.2; color: var(--text); }
+
+/* The box floating over the picture that explains the demo. */
+.banner {
+  position: fixed;
+  z-index: 10;
+  top: 16px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: min(760px, calc(100% - 32px));
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px 20px;
+  padding: 16px 20px;
+  font-size: 15px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  box-shadow: 0 12px 32px rgb(16 24 40 / 0.18);
+}
+.banner p { margin: 0; flex: 1 1 320px; }
+.banner small { display: block; margin-top: 2px; font-size: 14px; color: var(--muted); }
+
+@media (max-width: 560px) {
+  .banner { top: 12px; width: calc(100% - 24px); padding: 14px 16px; }
+  .banner .button { width: 100%; text-align: center; }
+}
