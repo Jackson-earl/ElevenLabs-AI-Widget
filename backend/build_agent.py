@@ -1,8 +1,8 @@
 """Build an ElevenLabs support agent for a client company from its public website.
 
-Use it from the command line:
+Use it from the command line, in the repository root:
     cp .env.example .env   # then put your API key in .env
-    python build_agent.py --company "Acme Plumbing" --website https://acmeplumbing.com \
+    python backend/build_agent.py --company "Acme Plumbing" --website https://acmeplumbing.com \
         [--notes intake.md] [--file pricing.pdf] [--max-pages 200]
 
 or from other Python code, such as the web app:

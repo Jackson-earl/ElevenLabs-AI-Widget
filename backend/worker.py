@@ -1,7 +1,7 @@
 """Builds agents for queued requests, one at a time.
 
-Run it in its own terminal, next to the web app:
-    python worker.py
+Run it in its own terminal, next to the web app, from the repository root:
+    python backend/worker.py
 
 It checks the database every few seconds. Stop it with Ctrl+C.
 
@@ -23,7 +23,8 @@ from build_agent import DEMO_DAYS, DEMO_PAGES, PUBLIC_URL, BuildError, build, fa
 from mailer import send_email
 
 POLL_SECONDS = 5
-SCREENSHOTS = os.path.join(os.path.dirname(os.path.abspath(__file__)), "uploads", "demos")
+# uploads/ sits in the repository root, one folder up from this file.
+SCREENSHOTS = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "uploads", "demos")
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(message)s", datefmt="%H:%M:%S")
 log = logging.getLogger("worker")

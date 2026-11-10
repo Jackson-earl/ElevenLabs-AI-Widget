@@ -1,9 +1,9 @@
 # The intake form and admin pages. The admin pages need ADMIN_PASSWORD, and building agents needs
 # ELEVENLABS_API_KEY; set both in the Amp project's environment variables or in .env.
-# worker.py is not declared here because every build it runs calls ElevenLabs; start it by hand.
+# backend/worker.py is not declared here because every build it runs calls ElevenLabs; start it by hand.
 services:
   web:
-    command: flask --app app run --debug --port "$PORT"
+    command: flask --app backend/app run --debug --port "$PORT"
     health: /
     portal:
       url: /

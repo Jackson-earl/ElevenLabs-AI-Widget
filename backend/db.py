@@ -18,7 +18,8 @@ import sqlite3
 import time
 from contextlib import contextmanager
 
-DB_PATH = os.environ.get("DATABASE_PATH", os.path.join(os.path.dirname(os.path.abspath(__file__)), "data.db"))
+# data.db sits in the repository root, one folder up from this file.
+DB_PATH = os.environ.get("DATABASE_PATH", os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "data.db"))
 
 SCHEMA = """
 CREATE TABLE IF NOT EXISTS requests (

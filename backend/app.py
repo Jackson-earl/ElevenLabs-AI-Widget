@@ -1,7 +1,7 @@
 """The web app: the intake form clients fill in, and the admin pages where you review agents.
 
-Run it with:
-    flask --app app run --debug --port 5001
+Run it from the repository root with:
+    flask --app backend/app run --debug --port 5001
 then open http://127.0.0.1:5001 (intake form) or http://127.0.0.1:5001/admin (admin pages).
 
 (Port 5000 is taken by AirPlay Receiver on most Macs, hence 5001.)
@@ -24,10 +24,12 @@ import db
 from build_agent import (DEMO_DAYS, FACT_FIELDS, FILE_TYPES, MAX_FILE_BYTES, PUBLIC_URL, BuildError, check_site,
                          company_name, embed_code, facts_text, set_allowed_domains, update_facts)
 
-UPLOADS = os.path.join(os.path.dirname(os.path.abspath(__file__)), "uploads")
+# The repository root, one folder up from this file. templates/, static/ and uploads/ are there.
+ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+UPLOADS = os.path.join(ROOT, "uploads")
 MAX_FILES = 5
 
-app = Flask(__name__)
+app = Flask(__name__, template_folder=os.path.join(ROOT, "templates"), static_folder=os.path.join(ROOT, "static"))
 # Flask rejects any submission bigger than this before our code runs.
 app.config["MAX_CONTENT_LENGTH"] = MAX_FILES * MAX_FILE_BYTES + 1024 * 1024
 # flash() keeps its messages in a signed cookie, which needs a secret key. A random one is fine
@@ -39,7 +41,7 @@ app.secret_key = os.environ.get("SECRET_KEY") or os.urandom(32)
 def intake():
     # request.args are the values after "?" in the address. The demo page links here with
     # ?company=...&website=...&email=... so the form starts filled in.
-    return render_template("intake.html", fields=FACT_FIELDS, form=request.args, error=None)
+    return render_template("base/intake.html", fields=FACT_FIELDS, form=request.args, error=None)
 
 
 @app.post("/")
@@ -48,7 +50,7 @@ def submit():
 
     def show_error(message):
         # Show the form again with the client's answers still filled in.
-        return render_template("intake.html", fields=FACT_FIELDS, form=form, error=message), 400
+        return render_template("base/intake.html", fields=FACT_FIELDS, form=form, error=message), 400
 
     company = form.get("company", "").strip()
     website = form.get("website", "").strip()
@@ -114,7 +116,7 @@ def site_key(website):
 
 @app.get("/demo")
 def demo_form():
-    return render_template("demo_form.html", form=request.args, error=None)
+    return render_template("demo/demo_form.html", form=request.args, error=None)
 
 
 @app.post("/demo")
@@ -122,7 +124,7 @@ def demo_submit():
     form = request.form
 
     def show_error(message):
-        return render_template("demo_form.html", form=form, error=message), 400
+        return render_template("demo/demo_form.html", form=form, error=message), 400
 
     # A field people never see (it's moved off-screen). Bots fill in every field they find, so a
     # value here means a bot: pretend it worked and do nothing.
@@ -159,7 +161,7 @@ def demo_submit():
 
 @app.get("/demo/thanks")
 def demo_thanks():
-    return render_template("demo_thanks.html")
+    return render_template("demo/demo_thanks.html")
 
 
 def live_demo_or_404(token):
@@ -175,8 +177,8 @@ def demo_page(token):
     demo = live_demo_or_404(token)
     if time.time() > demo["demo_expires_at"]:
         # 410 means "gone": this address worked once and won't again.
-        return render_template("demo_expired.html", r=demo), 410
-    return render_template("demo.html", r=demo, has_screenshot=bool(demo["screenshot"]))
+        return render_template("demo/demo_expired.html", r=demo), 410
+    return render_template("demo/demo.html", r=demo, has_screenshot=bool(demo["screenshot"]))
 
 
 @app.get("/demo/<token>/screenshot.jpg")
@@ -191,12 +193,12 @@ def demo_screenshot(token):
 
 @app.get("/thanks")
 def thanks():
-    return render_template("thanks.html")
+    return render_template("base/thanks.html")
 
 
 @app.errorhandler(413)
 def too_large(_):
-    return render_template("intake.html", fields=FACT_FIELDS, form={},
+    return render_template("base/intake.html", fields=FACT_FIELDS, form={},
                            error="Those files are too large together. Please upload less, or smaller files."), 413
 
 
@@ -287,14 +289,14 @@ def get_or_404(request_id):
 def admin_list():
     rows = db.list_requests()
     busy = any(r["status"] in ("queued", "building") for r in rows)
-    return render_template("admin_list.html", rows=rows, refresh=busy)
+    return render_template("admin/admin_list.html", rows=rows, refresh=busy)
 
 
 @app.get("/admin/requests/<int:request_id>")
 def admin_review(request_id):
     found = get_or_404(request_id)
     files = [os.path.basename(path) for path in found["files"]]
-    return render_template("admin_review.html", r=found, files=files, fields=FACT_FIELDS,
+    return render_template("admin/admin_review.html", r=found, files=files, fields=FACT_FIELDS,
                            actions=[name for name, (allowed, _) in ACTIONS.items() if found["status"] in allowed],
                            domains=", ".join(default_domains(found["website"])),
                            refresh=found["status"] in ("queued", "building"))
@@ -309,8 +311,8 @@ def admin_delivery(request_id):
     embed = embed_code(found["agent_id"])
     # delivery_email.txt ends in .txt, so Flask doesn't HTML-escape it: the embed code stays
     # exactly as the client must paste it. The HTML page escapes it when showing it.
-    message = render_template("delivery_email.txt", r=found, embed=embed)
-    return render_template("admin_delivery.html", r=found, embed=embed, message=message,
+    message = render_template("admin/delivery_email.txt", r=found, embed=embed)
+    return render_template("admin/admin_delivery.html", r=found, embed=embed, message=message,
                            subject=f"Your {found['company']} website assistant is ready")
 
 
