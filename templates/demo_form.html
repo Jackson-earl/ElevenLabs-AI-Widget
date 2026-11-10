@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% block title %}See your AI assistant on your own website{% endblock %}
+{% block content %}
+<h1>See it on your website</h1>
+<p class="lead">Enter your website and your email. We'll read your site, build an assistant that knows it, and email you a link to try it on your own homepage, usually within 10 minutes. It's free.</p>
+
+{% if error %}<p class="error" role="alert">{{ error }}</p>{% endif %}
+
+<form method="post">
+  <label for="website">Your website</label>
+  <input type="text" id="website" name="website" value="{{ form.get('website', '') }}" placeholder="yourcompany.com" required>
+
+  <label for="email">Your email <span class="hint">We'll send the demo link here.</span></label>
+  <input type="email" id="email" name="email" value="{{ form.get('email', '') }}" required>
+
+  {# A trap for spam bots: moved off-screen and skipped by the Tab key, so people never fill it in. #}
+  <div style="position: absolute; left: -10000px" aria-hidden="true">
+    <label for="leave_empty">Leave this empty</label>
+    <input type="text" id="leave_empty" name="leave_empty" tabindex="-1" autocomplete="off">
+  </div>
+
+  <button type="submit">Email me my demo</button>
+</form>
+{% endblock %}

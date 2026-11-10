@@ -3,25 +3,26 @@
 {% block content %}
 <a class="back" href="{{ url_for('admin_list') }}">&larr; All requests</a>
 
+{# Approve has its own card below because it needs the domains field; the header keeps the one-click actions. #}
+{% set header_actions = actions | reject('equalto', 'approve') | list %}
+
 <div class="page-head">
   <div>
     <h1>{{ r.company }}</h1>
     <p>
       <span class="status {{ r.status }}">{{ r.status.replace('_', ' ') }}</span>
       {% if r.status in ('queued', 'building') %}<span class="muted">{{ r.progress or 'Waiting for the worker' }}. This page refreshes itself.</span>{% endif %}
+      {% if r.status == 'approved' %}<a href="{{ url_for('admin_delivery', request_id=r.id) }}">Open the delivery message</a>{% endif %}
     </p>
   </div>
 
-  {% if actions %}
+  {% if header_actions %}
   <div class="actions">
-    {% if 'approve' in actions %}
-      <form method="post" action="{{ url_for('admin_action', request_id=r.id, action='approve') }}"><button>Approve</button></form>
-    {% endif %}
-    {% if 'rebuild' in actions %}
+    {% if 'rebuild' in header_actions %}
       <form method="post" action="{{ url_for('admin_action', request_id=r.id, action='rebuild') }}"
             onsubmit="return confirm('Crawl the site again and build a new agent?')"><button class="secondary">Rebuild</button></form>
     {% endif %}
-    {% if 'reject' in actions %}
+    {% if 'reject' in header_actions %}
       <form method="post" action="{{ url_for('admin_action', request_id=r.id, action='reject') }}"
             onsubmit="return confirm('Reject this request?')"><button class="danger">Reject</button></form>
     {% endif %}
@@ -33,6 +34,21 @@
 <section class="card danger-zone">
   <h2>What went wrong</h2>
   <pre>{{ r.error }}</pre>
+</section>
+{% endif %}
+
+{% if 'approve' in actions %}
+<section class="card">
+  <h2>Approve and deliver</h2>
+  {# app.py reads this field by its name, "domains". Renaming it makes every approval fail. #}
+  <form method="post" action="{{ url_for('admin_action', request_id=r.id, action='approve') }}">
+    <label for="domains">Websites the widget may run on
+      <span class="hint">Separate with commas. Your own machine stays allowed, so the preview on this page keeps working.</span></label>
+    <input type="text" id="domains" name="domains" value="{{ domains }}">
+    <div class="form-actions">
+      <button>Approve and deliver</button>
+    </div>
+  </form>
 </section>
 {% endif %}
 

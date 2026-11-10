@@ -1,0 +1,22 @@
+Hi,
+
+Your {{ r.company }} website assistant is ready. It has read your website{% if r.facts %} and the details you gave us{% endif %}, and it can answer your visitors' questions any time of day.
+
+To add it to your site, paste these two lines into your website's code, just before the closing </body> tag, so it shows on every page:
+
+{{ embed }}
+
+Where to paste them, depending on your website builder:
+- WordPress: install the free WPCode plugin, open its Header & Footer page, and paste them into the Footer box.
+- Wix: in Settings, open Custom Code, click Add Custom Code, and choose "All pages" and "Body - end". This needs a paid Wix plan.
+- Squarespace: in Settings, open Code Injection and paste them into the Footer box. This needs a plan that includes code injection.
+- Shopify: go to Online Store > Themes, choose Edit code, open theme.liquid, and paste them just before </body>.
+- Webflow: in Site settings, open Custom code, paste them into Footer code, and publish. This needs a paid site plan.
+- Anything else: forward these lines to whoever looks after your website.
+
+The assistant only works on your own website, so nobody else can put it on theirs. If you'd like it on another site too, such as a separate shop, reply with the address and we'll add it.
+
+Any questions, just reply to this email.
+
+Thanks,
+Jackson Earl

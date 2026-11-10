@@ -1,0 +1,7 @@
+{% extends "base.html" %}
+{% block title %}This demo has ended{% endblock %}
+{% block content %}
+<h1>This demo has ended</h1>
+<p class="lead">Demo links work for a week. If you'd like the assistant on {{ r.company }}'s website for real, we'll build it for you.</p>
+<a class="button" href="{{ url_for('intake', company=r.company, website=r.website, email=r.contact_email) }}">Get my assistant</a>
+{% endblock %}

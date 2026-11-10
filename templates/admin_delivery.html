@@ -1,0 +1,51 @@
+{% extends "admin_base.html" %}
+{% block title %}Deliver {{ r.company }}: admin{% endblock %}
+{% block style %}
+  {{ super() }}
+  textarea.message { min-height: 420px; font-size: 14px; }
+  textarea.code { min-height: 70px; font: 13px/1.5 ui-monospace, Menlo, monospace; }
+{% endblock %}
+{% block content %}
+<nav><a href="{{ url_for('admin_review', request_id=r.id) }}">&larr; Back to {{ r.company }}</a></nav>
+<h1>Deliver {{ r.company }}</h1>
+<p class="lead">Check the message, add your name at the end, and send it. You can edit it here first; both buttons use what's in the box.</p>
+
+<label for="to">To</label>
+<input type="email" id="to" value="{{ r.contact_email }}">
+<label for="subject">Subject</label>
+<input type="text" id="subject" value="{{ subject }}">
+<label for="message">Message</label>
+{# Jinja escapes the embed code here, so the browser shows the tags as text instead of running them. #}
+<textarea id="message" class="message">{{ message }}</textarea>
+
+<div class="actions">
+  <button type="button" onclick="openEmail()">Open in my email app</button>
+  <button type="button" class="secondary" data-copy="message">Copy message</button>
+</div>
+
+<h2>Just the embed code</h2>
+<p class="muted">For when the client asks for the code on its own, or for your own test page.</p>
+<textarea id="embed" class="code" readonly>{{ embed }}</textarea>
+<div class="actions"><button type="button" class="secondary" data-copy="embed">Copy code</button></div>
+
+<script>
+  // A mailto: link opens the computer's email app with the fields filled in. Each part must be
+  // URL-encoded (spaces become %20 and so on), and email expects \r\n line breaks.
+  function mailtoUrl() {
+    const value = (id) => document.getElementById(id).value
+    const body = value("message").replace(/\r?\n/g, "\r\n")
+    return `mailto:${encodeURIComponent(value("to"))}?subject=${encodeURIComponent(value("subject"))}&body=${encodeURIComponent(body)}`
+  }
+  function openEmail() {
+    location.href = mailtoUrl()
+  }
+  for (const button of document.querySelectorAll("[data-copy]")) {
+    button.addEventListener("click", async () => {
+      await navigator.clipboard.writeText(document.getElementById(button.dataset.copy).value)
+      const label = button.textContent
+      button.textContent = "Copied"
+      setTimeout(() => (button.textContent = label), 1500)
+    })
+  }
+</script>
+{% endblock %}

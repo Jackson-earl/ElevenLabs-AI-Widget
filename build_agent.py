@@ -66,6 +66,18 @@ FILE_TYPES = {
 }
 MAX_FILE_BYTES = 20 * 1024 * 1024
 
+# The address people reach this app at: your own machine for now, your real domain once it's
+# online. Demo links in emails start with it.
+PUBLIC_URL = os.environ.get("PUBLIC_URL", "http://127.0.0.1:5001").rstrip("/")
+# Where every agent's widget may run before (and after) approval: the admin preview and the
+# demo pages, on your machine and at PUBLIC_URL.
+PREVIEW_HOSTS = list(dict.fromkeys(["localhost", "127.0.0.1", urlparse(PUBLIC_URL).hostname]))
+
+# Demos are built for free, so they are kept small and short-lived.
+DEMO_DAYS = 7            # how long a demo link works
+DEMO_PAGES = 30          # pages crawled for a demo (the most important ones; see priority())
+DEMO_MAX_SECONDS = 180   # longest a single demo conversation may run
+
 CRAWLER = {"User-Agent": "ElevenlabsBot/1.0"}
 # Pages that add noise rather than answers.
 EXCLUDE = ["*/cart*", "*/checkout*", "*/login*", "*/account*", "*/tag/*", "*/thank-you*", "*/feed", "*/.well-known/*"]
@@ -95,6 +107,39 @@ def check_site(website):
         problem = "The homepage has almost no text without JavaScript, so the crawler will save near-empty pages. Add the business details or documents by hand instead."
     linked = {urljoin(home.url, href).split("#")[0].rstrip("/") for href in re.findall(r'href="([^"]+)"', home.text)}
     return home.url, linked, problem
+
+
+def company_name(website):
+    """Guess a company's name from its homepage, for the demo form, which doesn't ask for one.
+
+    Tries the site's own og:site_name tag first, then the part of the page title that matches
+    the domain ("Dealerslink – Auto Dealership Software" on dealerslink.com gives "Dealerslink"),
+    and falls back to the domain itself."""
+    host = (urlparse(website).hostname or website).removeprefix("www.")
+    try:
+        # Decode as UTF-8 ourselves: when a server doesn't name its encoding, requests assumes
+        # Latin-1, which turns characters like "–" into junk such as "â€“".
+        page = requests.get(website, headers=CRAWLER, timeout=30).content.decode("utf-8", "replace")
+    except requests.RequestException:
+        page = ""
+    for tag in re.findall(r"<meta\b[^>]*>", page, re.I):
+        if re.search(r"""property=["']og:site_name["']""", tag, re.I):
+            content = re.search(r"""content=["']([^"']+)""", tag, re.I)
+            if content and len(content.group(1).strip()) <= 60:
+                return html.unescape(content.group(1)).strip()
+    title = re.search(r"<title[^>]*>(.*?)</title>", page, re.I | re.S)
+    if title:
+        # Titles join the name and a tagline with " | ", " – ", " - " or ": ".
+        parts = [p.strip() for p in re.split(r"\s[|–—-]\s|:\s", html.unescape(title.group(1))) if p.strip()]
+        # Every part of the address except the ending, so public.dealerslink.com checks "public"
+        # and "dealerslink". Very short parts like "co" would match too many titles.
+        labels = [re.sub(r"[^a-z0-9]", "", label) for label in host.split(".")[:-1]]
+        labels = [label for label in labels if len(label) >= 4]
+        for part in parts:
+            letters = re.sub(r"[^a-z0-9]", "", part.lower())
+            if letters and len(part) <= 60 and any(letters in label or label in letters for label in labels):
+                return part
+    return host
 
 
 def sitemap_pages(website):
@@ -223,25 +268,32 @@ Ask one question at a time. Do not insist if they decline.
 """
 
 
-def create_agent(company, website, knowledge_base):
+def create_agent(company, website, knowledge_base, demo=False):
+    conversation_config = {
+        "agent": {
+            "first_message": f"Hi! I'm the {company} assistant. What's your name, and what can I help you with today?",
+            "language": "en",
+            "prompt": {
+                "prompt": system_prompt(company, website),
+                "knowledge_base": knowledge_base,
+                "rag": {"enabled": True, "embedding_model": "e5_mistral_7b_instruct"},
+            },
+        }
+    }
+    if demo:
+        # Demo conversations come out of your credits before anyone has paid, so keep them short.
+        conversation_config["conversation"] = {"max_duration_seconds": DEMO_MAX_SECONDS}
     agent = call(
         "POST",
         "/agents/create",
         json={
-            "name": f"{company} Assistant",
-            "conversation_config": {
-                "agent": {
-                    "first_message": f"Hi! I'm the {company} assistant. What's your name, and what can I help you with today?",
-                    "language": "en",
-                    "prompt": {
-                        "prompt": system_prompt(company, website),
-                        "knowledge_base": knowledge_base,
-                        "rag": {"enabled": True, "embedding_model": "e5_mistral_7b_instruct"},
-                    },
-                }
-            },
+            "name": f"{company} Assistant" + (" (demo)" if demo else ""),
+            "conversation_config": conversation_config,
             "platform_settings": {
                 "widget": {"variant": "full", "placement": "bottom-right"},
+                # Until you approve it, the widget only runs on your own machine (the admin preview).
+                # Approving replaces this with the client's domains.
+                "auth": {"allowlist": [{"hostname": host} for host in PREVIEW_HOSTS]},
                 # Pull the visitor details the agent collected into each conversation's analysis.
                 "data_collection": {
                     "visitor_name": {"type": "string", "description": "The visitor's first name, if given."},
@@ -272,6 +324,14 @@ def facts_text(facts):
     return "\n\n".join(sections)
 
 
+def set_allowed_domains(agent_id, hostnames):
+    """Let the agent's widget run only on these hostnames (plus the admin preview), so other
+    websites can't embed it and use your credits. This is a browser-level guard: it stops other
+    sites, not someone scripting requests by hand, so keep the usage limits on each agent too."""
+    hosts = list(dict.fromkeys([*hostnames, *PREVIEW_HOSTS]))
+    call("PATCH", f"/agents/{agent_id}", json={"platform_settings": {"auth": {"allowlist": [{"hostname": h} for h in hosts]}}})
+
+
 def update_facts(facts_doc_id, text):
     """Replace the text of an agent's facts document. The agent uses the new text from its next
     conversation on, with no rebuild, because it refers to the document by ID."""
@@ -285,12 +345,13 @@ def embed_code(agent_id):
     )
 
 
-def build(company, website, facts="", files=(), max_pages=200, force=False, on_progress=print):
+def build(company, website, facts="", files=(), max_pages=200, force=False, demo=False, on_progress=print):
     """Build one client's agent from start to finish and return the IDs to save.
 
     facts: text the client typed in (pricing, hours, values...). Empty means none.
     files: paths of files the client uploaded.
     force: build even if check_site found a problem.
+    demo: build a free demo agent, with shorter conversations (pass max_pages=DEMO_PAGES too).
     on_progress: called with a short message at each step. The command line prints them;
         the web app saves them so the admin page can show how far along a build is.
 
@@ -333,7 +394,7 @@ def build(company, website, facts="", files=(), max_pages=200, force=False, on_p
         knowledge_base.append({"type": "file", "id": doc["id"], "name": doc["name"], "usage_mode": "auto"})
 
     on_progress("Creating the agent")
-    agent_id = create_agent(company, website, knowledge_base)
+    agent_id = create_agent(company, website, knowledge_base, demo=demo)
     on_progress("Done")
     return {"agent_id": agent_id, "folder_id": folder_id, "facts_doc_id": facts_doc_id, "file_doc_ids": file_doc_ids}
 
@@ -358,7 +419,8 @@ def main():
         sys.exit(f"Error: {e}")
 
     print(f"\nAgent created: https://elevenlabs.io/app/agents/agents/{result['agent_id']}")
-    print("Before handing it over: add the client's domain to the agent's allowlist (Security tab).\n")
+    print("It only runs on localhost for now. Before handing it over, add the client's domain to the")
+    print("agent's allowlist (Security tab), or approve it from the admin page, which does that for you.\n")
     print("Embed code for the client's site:\n")
     print(embed_code(result["agent_id"]))
 
