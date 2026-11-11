@@ -55,6 +55,10 @@
 <section class="card">
   <h2>Request</h2>
   <dl>
+    {% if industry %}
+      <dt>Industry</dt><dd><a href="{{ url_for('admin_industry', industry_id=industry.id) }}">{{ industry.name }}</a>
+        <span class="muted">{{ 'questions approved' if industry.status == 'approved' else 'questions waiting for your approval' }}</span></dd>
+    {% endif %}
     <dt>Website</dt><dd><a href="{{ r.website }}" target="_blank" rel="noopener">{{ r.website }}</a></dd>
     <dt>Email</dt><dd>{{ r.contact_email }}</dd>
     <dt>Submitted</dt><dd>{{ r.created_at | ago }}</dd>

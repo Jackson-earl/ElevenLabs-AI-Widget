@@ -10,6 +10,10 @@ Demo requests (kind 'demo', from the free demo form) skip the review:
 
     queued -> building -> demo_sent
                        -> failed
+
+Each request names its industry. Industries have their own table: the common customer
+questions for that industry, written by OpenAI as a draft, then approved by you before any
+agent uses them.
 """
 
 import json
@@ -49,7 +53,22 @@ ADDED_COLUMNS = {
     "demo_token": "TEXT",                       # the secret part of the demo link
     "demo_expires_at": "REAL",
     "screenshot": "TEXT",                       # path of the homepage picture on the demo page
+    "industry_id": "INTEGER",                   # the industry the client typed in, from the industries table
 }
+
+INDUSTRIES = """
+CREATE TABLE IF NOT EXISTS industries (
+    id         INTEGER PRIMARY KEY AUTOINCREMENT,
+    key        TEXT NOT NULL UNIQUE,           -- the name in lower case, so "HVAC" and "hvac" are one industry
+    name       TEXT NOT NULL,                  -- as it was first typed, such as "HVAC"
+    status     TEXT NOT NULL DEFAULT 'draft',  -- 'draft' until you approve the questions, then 'approved'
+    questions  TEXT NOT NULL DEFAULT '',       -- the common questions and their answers, as Markdown
+    error      TEXT,                           -- why writing the questions last failed
+    doc_id     TEXT,                           -- the ElevenLabs document every agent in the industry shares
+    updated_at REAL NOT NULL
+)
+"""
+INDUSTRY_UPDATABLE = {"status", "questions", "error", "doc_id"}
 
 JSON_COLUMNS = {"facts", "files", "file_doc_ids"}
 # Columns update() may change. Column names cannot be passed as SQL parameters, so they are
@@ -81,6 +100,7 @@ def connect():
     db.row_factory = sqlite3.Row  # rows behave like dicts: row["company"]
     try:
         db.execute(SCHEMA)
+        db.execute(INDUSTRIES)
         migrate(db)
         with db:  # commit on success, roll back on error
             yield db
@@ -97,16 +117,17 @@ def to_dict(row):
     return request
 
 
-def add_request(company, website, contact_email, facts=None, files=None, kind="client", folder_id=None):
+def add_request(company, website, contact_email, facts=None, files=None, kind="client", folder_id=None,
+                industry_id=None):
     """Save a new request with status 'queued' and return its id. folder_id is a crawl the
     build should reuse instead of crawling the site again."""
     now = time.time()
     with connect() as db:
         cursor = db.execute(
-            "INSERT INTO requests (created_at, updated_at, company, website, contact_email, facts, files, kind, folder_id)"
-            " VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
+            "INSERT INTO requests (created_at, updated_at, company, website, contact_email, facts, files, kind,"
+            " folder_id, industry_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
             (now, now, company, website, contact_email, json.dumps(facts or {}), json.dumps(files or []), kind,
-             folder_id),
+             folder_id, industry_id),
         )
         return cursor.lastrowid
 
@@ -159,3 +180,47 @@ def update(request_id, **fields):
     assignments = ", ".join(f"{column} = ?" for column in values)
     with connect() as db:
         db.execute(f"UPDATE requests SET {assignments} WHERE id = ?", (*values.values(), request_id))
+
+
+# ---------------------------------------------------------------- Industries
+
+
+def add_industry(name):
+    """The id of the industry with this name, adding it as a draft with no questions if it's new.
+    Case and extra spaces don't matter: "Real  estate" and "real estate" are one industry."""
+    name = " ".join(name.split())
+    with connect() as db:
+        db.execute("INSERT OR IGNORE INTO industries (key, name, updated_at) VALUES (?, ?, ?)",
+                   (name.lower(), name, time.time()))
+        return db.execute("SELECT id FROM industries WHERE key = ?", (name.lower(),)).fetchone()["id"]
+
+
+def get_industry(industry_id):
+    with connect() as db:
+        row = db.execute("SELECT * FROM industries WHERE id = ?", (industry_id,)).fetchone()
+        return dict(row) if row else None
+
+
+def list_industries():
+    """All industries, drafts first, each with how many requests name it."""
+    with connect() as db:
+        rows = db.execute("SELECT industries.*, (SELECT COUNT(*) FROM requests WHERE industry_id = industries.id)"
+                          " AS requests FROM industries ORDER BY status = 'approved', name COLLATE NOCASE")
+        return [dict(row) for row in rows]
+
+
+def industry_requests(industry_id):
+    """The requests that name this industry, newest first."""
+    with connect() as db:
+        rows = db.execute("SELECT * FROM requests WHERE industry_id = ? ORDER BY id DESC", (industry_id,))
+        return [to_dict(row) for row in rows]
+
+
+def update_industry(industry_id, **fields):
+    unknown = set(fields) - INDUSTRY_UPDATABLE
+    if unknown:
+        raise ValueError(f"Cannot update {', '.join(sorted(unknown))}")
+    fields["updated_at"] = time.time()
+    assignments = ", ".join(f"{column} = ?" for column in fields)
+    with connect() as db:
+        db.execute(f"UPDATE industries SET {assignments} WHERE id = ?", (*fields.values(), industry_id))

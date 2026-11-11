@@ -1,7 +1,7 @@
 {% extends "base/base.html" %}
 {% block content %}
 <h1>Set up your AI assistant</h1>
-<p class="lead">Tell us your website and we'll build an assistant that answers your visitors' questions. Everything below the first three fields is optional, but it makes the assistant more accurate.</p>
+<p class="lead">Tell us your website and we'll build an assistant that answers your visitors' questions. Everything below the first four fields is optional, but it makes the assistant more accurate.</p>
 
 <div class="callout">
   <p><strong>Not sure yet?</strong> See a free demo on your own website first. It takes a minute to ask for.</p>
@@ -17,6 +17,9 @@
 
     <label for="company">Company name</label>
     <input type="text" id="company" name="company" value="{{ form.get('company', '') }}" required>
+
+    <label for="industry">Your industry <span class="hint">In a few words. Your assistant also learns the questions customers usually ask in your field.</span></label>
+    <input type="text" id="industry" name="industry" value="{{ form.get('industry', '') }}" placeholder="Such as Plumbing, Dental clinic, or Roofing" maxlength="60" required>
 
     <label for="website">Website</label>
     <input type="text" id="website" name="website" value="{{ form.get('website', '') }}" placeholder="yourcompany.com" required>

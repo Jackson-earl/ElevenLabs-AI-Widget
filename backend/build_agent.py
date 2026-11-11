@@ -253,18 +253,29 @@ def system_prompt(company, website):
 
 # Goal
 Help visitors get answers about {company}'s products, services, pricing, hours, and policies,
-and route them to a human when needed.
+and route them to a human when needed. You know {company}'s field well: answer general questions
+about it like an experienced expert, and show visitors why {company} is a good choice.
 
 # Opening
 At the start, ask for the visitor's first name and what they need help with today.
 If their question involves an order, booking, or account, also ask for their email.
 Ask one question at a time. Do not insist if they decline.
 
+# Where answers come from
+- {company}'s facts document and website are the only source for anything about {company}
+  itself: its prices, hours, services, policies, guarantees, licenses, and service area.
+- Your knowledge base may include an industry guide ("Industry guide: ..."): general answers to
+  questions customers ask about this kind of business. Use it to explain the field, then tie the
+  answer back to {company} with what its facts or website say, such as "...and {company} handles
+  that for you." Never present the guide's typical prices, times, or practices as {company}'s own.
+- If they disagree, trust the facts document first, then the website, then the industry guide.
+
 # Rules
-- Answer only from the knowledge base. If the answer is not there, say you are not sure
-  and offer to connect them with the {company} team. Never invent prices, hours, or policies.
+- If the answer is not in the knowledge base, say you are not sure and offer to connect them
+  with the {company} team. Never invent prices, hours, policies, or claims about {company}.
+- Speak well of {company}, using strengths its own website or facts describe.
 - Keep replies short and conversational.
-- Do not discuss competitors or topics unrelated to {company}.
+- Do not discuss competitors or topics unrelated to {company} and its field.
 """
 
 
@@ -332,10 +343,39 @@ def set_allowed_domains(agent_id, hostnames):
     call("PATCH", f"/agents/{agent_id}", json={"platform_settings": {"auth": {"allowlist": [{"hostname": h} for h in hosts]}}})
 
 
-def update_facts(facts_doc_id, text):
-    """Replace the text of an agent's facts document. The agent uses the new text from its next
-    conversation on, with no rebuild, because it refers to the document by ID."""
-    call("PATCH", f"/knowledge-base/{facts_doc_id}", json={"content": text})
+def update_text_doc(doc_id, text):
+    """Replace the text of a text document, such as an agent's facts or an industry guide. Agents
+    use the new text from their next conversation on, with no rebuild, because they refer to the
+    document by ID."""
+    call("PATCH", f"/knowledge-base/{doc_id}", json={"content": text})
+
+
+def industry_doc_name(industry):
+    # The system prompt refers to the guide by this name, so keep the "Industry guide:" start.
+    return f"Industry guide: {industry}"
+
+
+def create_industry_doc(industry, text):
+    """Upload an approved industry guide once. Every agent in the industry shares it by ID."""
+    return call("POST", "/knowledge-base/text", json={"text": text, "name": industry_doc_name(industry)})["id"]
+
+
+def industry_doc_entry(industry, doc_id):
+    # About 10 short answers fit easily in the prompt, so the agent always has them instead of
+    # relying on the search finding them.
+    return {"type": "text", "id": doc_id, "name": industry_doc_name(industry), "usage_mode": "prompt"}
+
+
+def add_industry_doc(agent_id, industry, doc_id):
+    """Add an industry guide to an agent that was built before the guide was approved.
+    A PATCH replaces the whole knowledge base list, so read it first and send it back with the guide."""
+    agent = call("GET", f"/agents/{agent_id}")
+    knowledge_base = agent["conversation_config"]["agent"]["prompt"].get("knowledge_base") or []
+    if any(doc["id"] == doc_id for doc in knowledge_base):
+        return
+    knowledge_base.append(industry_doc_entry(industry, doc_id))
+    call("PATCH", f"/agents/{agent_id}",
+         json={"conversation_config": {"agent": {"prompt": {"knowledge_base": knowledge_base}}}})
 
 
 def embed_code(agent_id):
@@ -346,7 +386,7 @@ def embed_code(agent_id):
 
 
 def build(company, website, facts="", files=(), max_pages=200, force=False, demo=False, folder_id=None,
-          on_progress=print):
+          industry_doc=None, on_progress=print):
     """Build one client's agent from start to finish and return the IDs to save.
 
     facts: text the client typed in (pricing, hours, values...). Empty means none.
@@ -355,6 +395,7 @@ def build(company, website, facts="", files=(), max_pages=200, force=False, demo
     demo: build a free demo agent, with shorter conversations.
     folder_id: a crawl folder this site already has, such as its demo's. The agent uses it
         instead of crawling the site again.
+    industry_doc: the approved guide for the client's industry, from industry_doc_entry().
     on_progress: called with a short message at each step. The command line prints them;
         the web app saves them so the admin page can show how far along a build is.
 
@@ -398,6 +439,9 @@ def build(company, website, facts="", files=(), max_pages=200, force=False, demo
         file_doc_ids.append(doc["id"])
         # Files can be long, so let the agent look up the relevant parts rather than read them all.
         knowledge_base.append({"type": "file", "id": doc["id"], "name": doc["name"], "usage_mode": "auto"})
+
+    if industry_doc:
+        knowledge_base.append(industry_doc)
 
     on_progress("Creating the agent")
     agent_id = create_agent(company, website, knowledge_base, demo=demo)

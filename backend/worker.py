@@ -8,6 +8,9 @@ It checks the database every few seconds. Stop it with Ctrl+C.
 Intake requests end at 'ready_for_review' for you to check. Demo requests (from the free demo
 form) are finished here instead: the worker takes a screenshot of the homepage, makes a secret
 link, and emails it to the person who asked.
+
+It also writes the common questions for each new industry a client names, as a draft for you to
+approve on the admin's Industries page. Builds use an industry's questions once you approve them.
 """
 
 import logging
@@ -19,7 +22,9 @@ import time
 import traceback
 
 import db
-from build_agent import DEMO_DAYS, PUBLIC_URL, BuildError, build, facts_text
+from build_agent import (DEMO_DAYS, PUBLIC_URL, BuildError, add_industry_doc, build, facts_text,
+                         industry_doc_entry)
+from industry import IndustryError, write_questions
 from mailer import send_email
 
 POLL_SECONDS = 5
@@ -146,6 +151,30 @@ def finish_demo(request, result):
     log.info("Request %s: demo emailed to %s (%s)", request_id, request["contact_email"], link)
 
 
+def write_new_industries():
+    """Write the draft questions for industries that have none yet. A failure is saved on the
+    industry, so it isn't retried every few seconds; the admin page's Write button retries it."""
+    for industry in db.list_industries():
+        if industry["status"] != "draft" or industry["questions"] or industry["error"]:
+            continue
+        log.info("Writing the common questions for %s", industry["name"])
+        try:
+            db.update_industry(industry["id"], questions=write_questions(industry["name"]))
+            log.info("Questions for %s are ready for your approval", industry["name"])
+        except IndustryError as e:
+            db.update_industry(industry["id"], error=str(e))
+            log.info("Couldn't write the questions for %s: %s", industry["name"], e)
+        except Exception:
+            db.update_industry(industry["id"], error="Unexpected error:\n" + traceback.format_exc())
+            log.exception("Writing the questions for %s crashed", industry["name"])
+
+
+def approved_industry(request):
+    """The request's industry if its questions are approved and uploaded, else None."""
+    industry = request["industry_id"] and db.get_industry(request["industry_id"])
+    return industry if industry and industry["status"] == "approved" and industry["doc_id"] else None
+
+
 def process(request):
     request_id = request["id"]
     demo = request["kind"] == "demo"
@@ -155,6 +184,7 @@ def process(request):
         log.info("  [%s] %s", request_id, message)
         db.update(request_id, progress=message)
 
+    industry = approved_industry(request)
     try:
         result = build(
             request["company"],
@@ -164,6 +194,7 @@ def process(request):
             demo=demo,
             # Set when the intake form found a demo of this site: its crawl is reused.
             folder_id=request["folder_id"],
+            industry_doc=industry and industry_doc_entry(industry["name"], industry["doc_id"]),
             on_progress=on_progress,
         )
     except BuildError as e:
@@ -180,6 +211,14 @@ def process(request):
     if demo:
         finish_demo(request, result)
         return
+    # The industry may have been approved during the build. Approving adds the guide only to
+    # agents that existed then, so add it to this one now.
+    late = approved_industry(request)
+    if late and not industry:
+        try:
+            add_industry_doc(result["agent_id"], late["name"], late["doc_id"])
+        except BuildError as e:
+            log.info("Request %s: couldn't add the %s industry guide (%s)", request_id, late["name"], e)
     db.update(request_id, status="ready_for_review", error=None, **result)
     log.info("Request %s is ready for review (agent %s)", request_id, result["agent_id"])
 
@@ -188,6 +227,7 @@ def main():
     recover_interrupted()
     log.info("Worker started; checking for requests every %s seconds", POLL_SECONDS)
     while True:
+        write_new_industries()
         request = db.claim_next()
         if request is None:
             time.sleep(POLL_SECONDS)

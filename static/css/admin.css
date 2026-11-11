@@ -86,3 +86,11 @@ pre {
   dl { grid-template-columns: 1fr; gap: 2px; }
   dd { margin-bottom: 10px; }
 }
+
+/* ---------------------------------------------------------------- Industry page */
+
+textarea.questions { min-height: 520px; font-size: 15px; }
+.form-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+.plain-list { margin: 12px 0 0; padding: 0; list-style: none; }
+.plain-list li { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; padding: 10px 0; border-top: 1px solid var(--line); }
+.plain-list li:first-child { border-top: 0; padding-top: 0; }

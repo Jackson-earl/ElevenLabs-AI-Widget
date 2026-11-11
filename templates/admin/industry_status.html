@@ -1,0 +1,6 @@
+{# The status pill for an industry. Included by the industry list and the industry page. #}
+{% if industry.status == 'approved' %}<span class="status approved">approved</span>
+{% elif industry.error %}<span class="status failed">failed</span>
+{% elif not industry.questions %}<span class="status building">writing</span>
+{% else %}<span class="status ready_for_review">ready for review</span>
+{% endif %}

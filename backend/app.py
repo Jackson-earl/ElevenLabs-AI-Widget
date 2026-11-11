@@ -21,8 +21,9 @@ from flask import Flask, Response, abort, flash, redirect, render_template, requ
 from werkzeug.utils import secure_filename
 
 import db
-from build_agent import (DEMO_DAYS, FACT_FIELDS, FILE_TYPES, MAX_FILE_BYTES, PUBLIC_URL, BuildError, check_site,
-                         company_name, embed_code, facts_text, set_allowed_domains, update_facts)
+from build_agent import (DEMO_DAYS, FACT_FIELDS, FILE_TYPES, MAX_FILE_BYTES, PUBLIC_URL, BuildError, add_industry_doc,
+                         check_site, company_name, create_industry_doc, embed_code, facts_text, set_allowed_domains,
+                         update_text_doc)
 
 # The repository root, one folder up from this file. templates/, static/ and uploads/ are there.
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -55,8 +56,11 @@ def submit():
     company = form.get("company", "").strip()
     website = form.get("website", "").strip()
     email = form.get("email", "").strip()
-    if not company or not website or not email:
-        return show_error("Please fill in your company name, website, and email.")
+    industry = " ".join(form.get("industry", "").split())
+    if not company or not website or not email or not industry:
+        return show_error("Please fill in your company name, industry, website, and email.")
+    if len(industry) > 60:
+        return show_error("Please describe your industry in a few words, such as \"Plumbing\" or \"Dental clinic\".")
     if "@" not in email or "." not in email.split("@")[-1]:
         return show_error("That email address doesn't look right.")
 
@@ -97,7 +101,9 @@ def submit():
         paths.append(path)
 
     facts = {key: form.get(key, "").strip() for key, _, _ in FACT_FIELDS if form.get(key, "").strip()}
-    db.add_request(company, website, email, facts=facts, files=paths, folder_id=demo_crawl(website))
+    # A new industry is added as a draft; the worker writes its common questions for you to approve.
+    db.add_request(company, website, email, facts=facts, files=paths, folder_id=demo_crawl(website),
+                   industry_id=db.add_industry(industry))
     # Redirect after a successful POST, so refreshing the thanks page cannot submit twice.
     return redirect(url_for("thanks"))
 
@@ -312,6 +318,7 @@ def admin_review(request_id):
     return render_template("admin/admin_review.html", r=found, files=files, fields=FACT_FIELDS,
                            actions=[name for name, (allowed, _) in ACTIONS.items() if found["status"] in allowed],
                            domains=", ".join(default_domains(found["website"])),
+                           industry=found["industry_id"] and db.get_industry(found["industry_id"]),
                            refresh=found["status"] in ("queued", "building"))
 
 
@@ -380,7 +387,7 @@ def admin_save_facts(request_id):
         # Update ElevenLabs first and the database second, so the database never claims
         # the agent has facts that ElevenLabs refused.
         try:
-            update_facts(found["facts_doc_id"], text)
+            update_text_doc(found["facts_doc_id"], text)
         except BuildError as e:
             flash(f"ElevenLabs didn't accept the change: {e}", "error")
             return back
@@ -393,3 +400,89 @@ def admin_save_facts(request_id):
         else:
             flash("Saved. This agent was built without a facts document, so click Rebuild to use them.")
     return back
+
+
+# ---------------------------------------------------------------- Industries
+
+
+def industry_or_404(industry_id):
+    found = db.get_industry(industry_id)
+    if found is None:
+        abort(404)
+    return found
+
+
+def writing(industry):
+    """True while the worker hasn't written this industry's draft questions yet."""
+    return industry["status"] == "draft" and not industry["questions"] and not industry["error"]
+
+
+@app.get("/admin/industries")
+def admin_industries():
+    rows = db.list_industries()
+    return render_template("admin/admin_industries.html", rows=rows, refresh=any(writing(i) for i in rows))
+
+
+@app.get("/admin/industries/<int:industry_id>")
+def admin_industry(industry_id):
+    found = industry_or_404(industry_id)
+    return render_template("admin/admin_industry.html", industry=found, requests=db.industry_requests(industry_id),
+                           refresh=writing(found))
+
+
+@app.post("/admin/industries/<int:industry_id>")
+def admin_save_industry(industry_id):
+    """Save the questions. "Approve and release" also uploads them to ElevenLabs and adds them to
+    every agent already built in this industry; once approved, saving updates them for all of them."""
+    found = industry_or_404(industry_id)
+    text = request.form.get("questions", "").strip()
+    back = redirect(url_for("admin_industry", industry_id=industry_id))
+    if not text:
+        flash("The questions can't be empty.", "error")
+        return back
+    if found["status"] != "approved" and request.form.get("approve") != "1":
+        db.update_industry(industry_id, questions=text)
+        flash("Saved as a draft. No agent uses it until you approve it.")
+        return back
+
+    # Update ElevenLabs first and the database second, like saving facts.
+    try:
+        if found["doc_id"]:
+            update_text_doc(found["doc_id"], text)
+            doc_id = found["doc_id"]
+        else:
+            doc_id = create_industry_doc(found["name"], text)
+    except BuildError as e:
+        flash(f"ElevenLabs didn't accept the questions: {e}", "error")
+        return back
+    db.update_industry(industry_id, questions=text, status="approved", doc_id=doc_id, error=None)
+    if found["status"] == "approved":
+        flash("Saved. Every agent in this industry uses the new questions from its next conversation.")
+        return back
+
+    # Newly approved: agents built while it was a draft don't have the guide yet.
+    added, failed = 0, []
+    for r in db.industry_requests(industry_id):
+        if not r["agent_id"]:
+            continue  # still queued or building; the worker adds it when the build finishes
+        try:
+            add_industry_doc(r["agent_id"], found["name"], doc_id)
+            added += 1
+        except BuildError as e:
+            app.logger.warning("Couldn't add the %s guide to agent %s: %s", found["name"], r["agent_id"], e)
+            failed.append(r["company"])
+    flash(f"Approved and added to {added} existing agent{'' if added == 1 else 's'}. New builds include it.")
+    if failed:
+        flash(f"Couldn't add it to {', '.join(failed)}. Rebuild those to include it.", "error")
+    return back
+
+
+@app.post("/admin/industries/<int:industry_id>/rewrite")
+def admin_rewrite_industry(industry_id):
+    found = industry_or_404(industry_id)
+    if found["status"] == "approved":
+        flash("These questions are approved and in use. Edit them here instead.", "error")
+    else:
+        db.update_industry(industry_id, questions="", error=None)
+        flash("The worker will write new questions as soon as it's free.")
+    return redirect(url_for("admin_industry", industry_id=industry_id))

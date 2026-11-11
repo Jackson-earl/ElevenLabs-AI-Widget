@@ -1,0 +1,30 @@
+{% extends "admin/admin_base.html" %}
+{% block title %}Industries: admin{% endblock %}
+{% block content %}
+<h1>Industries</h1>
+<p class="lead">The common customer questions for each industry clients name on the intake form. OpenAI writes a draft; agents use it once you approve it.{% if refresh %} This page refreshes itself while drafts are being written.{% endif %}</p>
+
+{% if rows %}
+<div class="table-wrap">
+  <table>
+    <thead>
+      <tr><th>Industry</th><th>Status</th><th>Clients</th><th>Updated</th></tr>
+    </thead>
+    <tbody>
+    {% for industry in rows %}
+      <tr>
+        <td><a href="{{ url_for('admin_industry', industry_id=industry.id) }}">{{ industry.name }}</a></td>
+        <td>{% include "admin/industry_status.html" %}</td>
+        <td class="muted">{{ industry.requests }}</td>
+        <td class="muted">{{ industry.updated_at | ago }}</td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% else %}
+<section class="card">
+  <p>No industries yet. They appear here when a client names one on the <a href="{{ url_for('intake') }}">intake form</a>.</p>
+</section>
+{% endif %}
+{% endblock %}

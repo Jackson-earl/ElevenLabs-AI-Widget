@@ -1,0 +1,61 @@
+{% extends "admin/admin_base.html" %}
+{% block title %}{{ industry.name }}: admin{% endblock %}
+{% block content %}
+<a class="back" href="{{ url_for('admin_industries') }}">&larr; All industries</a>
+
+<div class="page-head">
+  <div>
+    <h1>{{ industry.name }}</h1>
+    <p>
+      {% include "admin/industry_status.html" %}
+      {% if refresh %}<span class="muted">The worker is asking OpenAI for the common questions. This page refreshes itself.</span>{% endif %}
+    </p>
+  </div>
+  {% if industry.status != 'approved' and (industry.questions or industry.error) %}
+  <div class="actions">
+    <form method="post" action="{{ url_for('admin_rewrite_industry', industry_id=industry.id) }}"
+          onsubmit="return confirm('Throw away this draft and ask OpenAI for new questions?')"><button class="secondary">Write again</button></form>
+  </div>
+  {% endif %}
+</div>
+
+{% if industry.error %}
+<section class="card danger-zone">
+  <h2>What went wrong</h2>
+  <pre>{{ industry.error }}</pre>
+</section>
+{% endif %}
+
+{% if industry.questions %}
+<section class="card">
+  <h2>Common questions</h2>
+  <p>{% if industry.status == 'approved' %}Every agent in this industry has these in its prompt. Saving updates them all right away, with no rebuild.{% else %}Check every answer before approving: agents present this as expert knowledge. Each question is a "## " heading with its answer below. Answers must stay general, with no prices or promises that only fit one business.{% endif %}</p>
+  <form method="post" action="{{ url_for('admin_save_industry', industry_id=industry.id) }}">
+    <label for="questions">Questions and answers</label>
+    <textarea id="questions" name="questions" class="questions">{{ industry.questions }}</textarea>
+    <div class="form-actions">
+      {% if industry.status == 'approved' %}
+        <button>Save</button>
+      {% else %}
+        <button name="approve" value="1" onclick="return confirm('Release these questions to every agent in this industry?')">Approve and release</button>
+        <button class="secondary">Save draft</button>
+      {% endif %}
+    </div>
+  </form>
+</section>
+{% endif %}
+
+<section class="card">
+  <h2>Clients in this industry</h2>
+  {% if requests %}
+  <ul class="plain-list">
+    {% for r in requests %}
+      <li><a href="{{ url_for('admin_review', request_id=r.id) }}">{{ r.company }}</a>
+        <span class="status {{ r.status }}">{{ r.status.replace('_', ' ') }}</span></li>
+    {% endfor %}
+  </ul>
+  {% else %}
+  <p>None yet.</p>
+  {% endif %}
+</section>
+{% endblock %}
