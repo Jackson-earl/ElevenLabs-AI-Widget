@@ -73,9 +73,9 @@ PUBLIC_URL = os.environ.get("PUBLIC_URL", "http://127.0.0.1:5001").rstrip("/")
 # demo pages, on your machine and at PUBLIC_URL.
 PREVIEW_HOSTS = list(dict.fromkeys(["localhost", "127.0.0.1", urlparse(PUBLIC_URL).hostname]))
 
-# Demos are built for free, so they are kept small and short-lived.
+# Demos are built for free, so they are short-lived. They crawl the whole site like a client
+# build, so if the client signs up, their agent reuses the demo's crawl instead of crawling again.
 DEMO_DAYS = 7            # how long a demo link works
-DEMO_PAGES = 30          # pages crawled for a demo (the most important ones; see priority())
 DEMO_MAX_SECONDS = 180   # longest a single demo conversation may run
 
 CRAWLER = {"User-Agent": "ElevenlabsBot/1.0"}
@@ -345,13 +345,16 @@ def embed_code(agent_id):
     )
 
 
-def build(company, website, facts="", files=(), max_pages=200, force=False, demo=False, on_progress=print):
+def build(company, website, facts="", files=(), max_pages=200, force=False, demo=False, folder_id=None,
+          on_progress=print):
     """Build one client's agent from start to finish and return the IDs to save.
 
     facts: text the client typed in (pricing, hours, values...). Empty means none.
     files: paths of files the client uploaded.
     force: build even if check_site found a problem.
-    demo: build a free demo agent, with shorter conversations (pass max_pages=DEMO_PAGES too).
+    demo: build a free demo agent, with shorter conversations.
+    folder_id: a crawl folder this site already has, such as its demo's. The agent uses it
+        instead of crawling the site again.
     on_progress: called with a short message at each step. The command line prints them;
         the web app saves them so the admin page can show how far along a build is.
 
@@ -372,7 +375,10 @@ def build(company, website, facts="", files=(), max_pages=200, force=False, demo
     if problem:
         on_progress("Warning: " + problem)
 
-    folder_id = crawl_website(website, linked, max_pages, on_progress)
+    if folder_id:
+        on_progress("Using the website crawl from this site's demo")
+    else:
+        folder_id = crawl_website(website, linked, max_pages, on_progress)
     knowledge_base = [{"type": "folder", "id": folder_id, "name": f"{company} website", "usage_mode": "auto"}]
 
     facts_doc_id = None

@@ -97,7 +97,7 @@ def submit():
         paths.append(path)
 
     facts = {key: form.get(key, "").strip() for key, _, _ in FACT_FIELDS if form.get(key, "").strip()}
-    db.add_request(company, website, email, facts=facts, files=paths)
+    db.add_request(company, website, email, facts=facts, files=paths, folder_id=demo_crawl(website))
     # Redirect after a successful POST, so refreshing the thanks page cannot submit twice.
     return redirect(url_for("thanks"))
 
@@ -112,6 +112,19 @@ EMAIL = re.compile(r"[^@\s]+@[^@\s]+\.[^@\s]+")
 def site_key(website):
     """The part of an address that identifies a website: https://www.acme.com/about -> acme.com."""
     return (urlparse(website).hostname or "").removeprefix("www.")
+
+
+def demo_crawl(website):
+    """The crawl folder of the newest demo of this website, or None.
+
+    Demos crawl the whole site, so a client who signs up after their demo gets an agent built
+    from that crawl instead of waiting for, and paying for, the same crawl again. The address
+    must match apart from "www." and a trailing slash, because a section address such as
+    acme.com/help crawls only that section."""
+    def page(url):
+        return site_key(url), urlparse(url).path.rstrip("/")
+    demos = [d for d in db.recent_demos(since=0) if d["folder_id"] and page(d["website"]) == page(website)]
+    return max(demos, key=lambda d: d["id"])["folder_id"] if demos else None
 
 
 @app.get("/demo")
@@ -338,10 +351,12 @@ def admin_action(request_id, action):
         return redirect(url_for("admin_delivery", request_id=request_id))
     elif action == "rebuild":
         # Clear the old results so the page doesn't show the previous agent while the new one builds.
-        # The old agent and crawl folder stay in ElevenLabs; delete them there.
+        # The old agent and crawl folder stay in ElevenLabs; delete them there. Clearing folder_id
+        # makes the rebuild crawl again, even if the first build reused a demo's crawl.
         db.update(request_id, status=new_status, progress="", error=None,
                   agent_id=None, folder_id=None, facts_doc_id=None, file_doc_ids=[])
-        flash("Queued for a rebuild. Delete the old agent and crawl folder in the ElevenLabs dashboard.")
+        flash("Queued for a rebuild. Delete the old agent in the ElevenLabs dashboard, and its crawl folder "
+              "unless a demo of the same site still uses it.")
     else:
         db.update(request_id, status=new_status)
         flash(f"Marked {new_status}.")

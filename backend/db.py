@@ -97,14 +97,16 @@ def to_dict(row):
     return request
 
 
-def add_request(company, website, contact_email, facts=None, files=None, kind="client"):
-    """Save a new request with status 'queued' and return its id."""
+def add_request(company, website, contact_email, facts=None, files=None, kind="client", folder_id=None):
+    """Save a new request with status 'queued' and return its id. folder_id is a crawl the
+    build should reuse instead of crawling the site again."""
     now = time.time()
     with connect() as db:
         cursor = db.execute(
-            "INSERT INTO requests (created_at, updated_at, company, website, contact_email, facts, files, kind)"
-            " VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
-            (now, now, company, website, contact_email, json.dumps(facts or {}), json.dumps(files or []), kind),
+            "INSERT INTO requests (created_at, updated_at, company, website, contact_email, facts, files, kind, folder_id)"
+            " VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
+            (now, now, company, website, contact_email, json.dumps(facts or {}), json.dumps(files or []), kind,
+             folder_id),
         )
         return cursor.lastrowid
 

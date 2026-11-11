@@ -19,7 +19,7 @@ import time
 import traceback
 
 import db
-from build_agent import DEMO_DAYS, DEMO_PAGES, PUBLIC_URL, BuildError, build, facts_text
+from build_agent import DEMO_DAYS, PUBLIC_URL, BuildError, build, facts_text
 from mailer import send_email
 
 POLL_SECONDS = 5
@@ -161,8 +161,9 @@ def process(request):
             request["website"],
             facts=facts_text(request["facts"]),
             files=request["files"],
-            max_pages=DEMO_PAGES if demo else 200,
             demo=demo,
+            # Set when the intake form found a demo of this site: its crawl is reused.
+            folder_id=request["folder_id"],
             on_progress=on_progress,
         )
     except BuildError as e:
