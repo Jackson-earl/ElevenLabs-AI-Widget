@@ -7,13 +7,17 @@
 
 /* ---------------------------------------------------------------- Demo page */
 
-/* The homepage picture fills the window behind everything. It's only a picture, so it ignores clicks. */
+/* The homepage picture sits behind everything. It's only a picture, so it ignores clicks. */
 .site {
   position: fixed;
   inset: 0;
-  background: var(--bg) left top / cover no-repeat;
+  overflow: hidden;
+  background: var(--bg);
   pointer-events: none;
 }
+/* Shown at its real size, never enlarged, so the homepage looks as it does in a browser.
+   It shrinks to fit a window narrower than the picture. */
+.site img { display: block; max-width: 100%; height: auto; margin: 0 auto; }
 .site.plain { display: grid; place-content: center; text-align: center; color: var(--muted); }
 .site.plain strong { display: block; font-size: 32px; line-height: 1.2; color: var(--text); }
 
@@ -39,6 +43,11 @@
 }
 .banner p { margin: 0; flex: 1 1 320px; }
 .banner small { display: block; margin-top: 2px; font-size: 14px; color: var(--muted); }
+
+/* On a phone the desktop picture would shrink to a thin strip, so fill the screen with its left part instead. */
+@media (max-width: 760px) {
+  .site img { width: 100%; max-width: none; height: 100%; object-fit: cover; object-position: left top; }
+}
 
 @media (max-width: 560px) {
   .banner { top: 12px; width: calc(100% - 24px); padding: 14px 16px; }

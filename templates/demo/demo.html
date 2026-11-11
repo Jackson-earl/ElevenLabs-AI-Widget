@@ -11,8 +11,7 @@
 </head>
 <body>
   {% if has_screenshot %}
-    <div class="site" role="img" aria-label="A picture of the {{ r.company }} homepage"
-         style="background-image: url('{{ url_for('demo_screenshot', token=r.demo_token) }}')"></div>
+    <div class="site"><img src="{{ url_for('demo_screenshot', token=r.demo_token) }}" alt="A picture of the {{ r.company }} homepage"></div>
   {% else %}
     <div class="site plain"><p><strong>{{ r.company }}</strong>{{ r.website }}</p></div>
   {% endif %}

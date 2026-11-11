@@ -77,7 +77,9 @@ def take_screenshot(url, path):
         with sync_playwright() as p:
             browser = p.chromium.launch()
             try:
-                page = browser.new_page(viewport={"width": 1280, "height": 800})
+                # A full-HD desktop window. The demo page shows the picture at this size and only
+                # shrinks it for smaller windows, so it should be at least as wide as most screens.
+                page = browser.new_page(viewport={"width": 1920, "height": 1080})
                 page.goto(url, wait_until="domcontentloaded", timeout=30_000)
                 page.wait_for_timeout(3_000)  # let fonts, images and entrance animations settle
                 dismiss_cookie_banner(page)
