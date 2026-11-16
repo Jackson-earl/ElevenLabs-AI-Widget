@@ -8,15 +8,19 @@
     <h1>{{ industry.name }}</h1>
     <p>
       {% include "admin/industry_status.html" %}
-      {% if refresh %}<span class="muted">The worker is asking OpenAI for the common questions. This page refreshes itself.</span>{% endif %}
+      {% if refresh %}<span class="muted">The worker is asking OpenAI for this industry's sales playbook. This page refreshes itself.</span>{% endif %}
     </p>
   </div>
-  {% if industry.status != 'approved' and (industry.questions or industry.error) %}
   <div class="actions">
+    {% if industry.status != 'approved' and (industry.questions or industry.error) %}
     <form method="post" action="{{ url_for('admin_rewrite_industry', industry_id=industry.id) }}"
           onsubmit="return confirm('Throw away this draft and ask OpenAI for new questions?')"><button class="secondary">Write again</button></form>
+    {% endif %}
+    {% set warning = 'Delete ' ~ industry.name ~ ' and its questions for good?'
+         ~ (' Agents in this industry lose them.' if industry.doc_id else '') ~ ' The clients and their agents stay.' %}
+    <form method="post" action="{{ url_for('admin_delete_industry', industry_id=industry.id) }}" data-confirm="{{ warning }}"
+          onsubmit="return confirm(this.dataset.confirm)"><button class="danger">Delete</button></form>
   </div>
-  {% endif %}
 </div>
 
 {% if industry.error %}
@@ -28,10 +32,10 @@
 
 {% if industry.questions %}
 <section class="card">
-  <h2>Common questions</h2>
-  <p>{% if industry.status == 'approved' %}Every agent in this industry has these in its prompt. Saving updates them all right away, with no rebuild.{% else %}Check every answer before approving: agents present this as expert knowledge. Each question is a "## " heading with its answer below. Answers must stay general, with no prices or promises that only fit one business.{% endif %}</p>
+  <h2>Sales playbook</h2>
+  <p>{% if industry.status == 'approved' %}Every agent in this industry has these in its prompt. Saving updates them all right away, with no rebuild.{% else %}Check every part before approving: agents present it as expert knowledge and follow its handoff rules. Keep the four "# " section headings; the agent looks for them by name. Answers must stay general, with no prices or promises that fit only one business.{% endif %}</p>
   <form method="post" action="{{ url_for('admin_save_industry', industry_id=industry.id) }}">
-    <label for="questions">Questions and answers</label>
+    <label for="questions">Playbook</label>
     <textarea id="questions" name="questions" class="questions">{{ industry.questions }}</textarea>
     <div class="form-actions">
       {% if industry.status == 'approved' %}

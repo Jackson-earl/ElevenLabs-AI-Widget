@@ -13,7 +13,9 @@
     <tbody>
     {% for r in rows %}
       <tr>
-        <td class="muted">{{ r.id }}</td>
+        {# The list's position, counted from the oldest request, so deleting one leaves no gap.
+           Links still use r.id, the request's permanent number. #}
+        <td class="muted">{{ loop.revindex }}</td>
         <td><a href="{{ url_for('admin_review', request_id=r.id) }}">{{ r.company }}</a><br><span class="muted">{{ r.website }}</span></td>
         <td><span class="status {{ r.status }}">{{ r.status.replace('_', ' ') }}</span></td>
         <td class="muted">{{ (r.progress or 'Starting') if r.status == 'building' else '' }}</td>

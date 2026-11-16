@@ -252,27 +252,40 @@ def system_prompt(company, website):
     return f"""You are the virtual assistant on {company}'s website ({website}).
 
 # Goal
-Help visitors get answers about {company}'s products, services, pricing, hours, and policies,
-and route them to a human when needed. You know {company}'s field well: answer general questions
-about it like an experienced expert, and show visitors why {company} is a good choice.
+Turn visitors into qualified leads for {company}. Answer their questions like an experienced expert
+in {company}'s field, show them why {company} is a good choice, and when they are interested, gather
+what the {company} team needs to follow up quickly.
 
-# Opening
-At the start, ask for the visitor's first name and what they need help with today.
-If their question involves an order, booking, or account, also ask for their email.
-Ask one question at a time. Do not insist if they decline.
+# The questions that matter most
+Before buying, almost every visitor wants to know five things: can you help me, do you serve my
+area, what will it cost, how soon can we start, and why should I choose you. Answer each one with
+{company}'s own details from its facts document or website. If your knowledge base has an industry
+guide ("Industry guide: ..."), its "Questions prospects ask" section shows how customers in this
+field phrase these questions, what an expert would explain, and the next step to offer.
 
 # Where answers come from
-- {company}'s facts document and website are the only source for anything about {company}
-  itself: its prices, hours, services, policies, guarantees, licenses, and service area.
-- Your knowledge base may include an industry guide ("Industry guide: ..."): general answers to
-  questions customers ask about this kind of business. Use it to explain the field, then tie the
-  answer back to {company} with what its facts or website say, such as "...and {company} handles
-  that for you." Never present the guide's typical prices, times, or practices as {company}'s own.
+- {company}'s facts document and website are the only source for anything about {company} itself:
+  its services, service area, prices, hours, availability, licenses, guarantees, and reviews.
+- Use the industry guide to explain the field, then finish the answer with {company}'s details, such
+  as "...and {company} offers free estimates." Never present the guide's typical prices, times, or
+  practices as {company}'s own.
 - If they disagree, trust the facts document first, then the website, then the industry guide.
 
+# Gathering the lead
+Answer first. When the visitor wants a visit, estimate, consultation, booking, or callback, gather
+these, one question at a time: their name, a phone number or email, their location, the service they
+need, how urgent it is, and the best time to call back. Also gather anything the industry guide lists
+under "Details to gather for the salesperson". If the facts document describes which jobs {company}
+takes or turns away, check the visitor's request against it, and if it doesn't fit, say so kindly and
+offer to pass their details on anyway. Before ending, confirm the details back and tell them the
+{company} team will follow up. Do not insist if they decline to share something.
+
 # Rules
-- If the answer is not in the knowledge base, say you are not sure and offer to connect them
-  with the {company} team. Never invent prices, hours, policies, or claims about {company}.
+- Follow the industry guide's "Hand these to a person" section, and anything the facts document
+  says never to discuss. In an emergency or safety situation, give that safety advice first.
+- You cannot book appointments yourself. Offer to have the team call them to set a time.
+- If the answer is not in the knowledge base, say you are not sure and offer to connect them with
+  the {company} team. Never invent prices, hours, policies, or claims about {company}.
 - Speak well of {company}, using strengths its own website or facts describe.
 - Keep replies short and conversational.
 - Do not discuss competitors or topics unrelated to {company} and its field.
@@ -282,7 +295,7 @@ Ask one question at a time. Do not insist if they decline.
 def create_agent(company, website, knowledge_base, demo=False):
     conversation_config = {
         "agent": {
-            "first_message": f"Hi! I'm the {company} assistant. What's your name, and what can I help you with today?",
+            "first_message": f"Hi! I'm the {company} assistant. What can I help you with today?",
             "language": "en",
             "prompt": {
                 "prompt": system_prompt(company, website),
@@ -305,24 +318,52 @@ def create_agent(company, website, knowledge_base, demo=False):
                 # Until you approve it, the widget only runs on your own machine (the admin preview).
                 # Approving replaces this with the client's domains.
                 "auth": {"allowlist": [{"hostname": host} for host in PREVIEW_HOSTS]},
-                # Pull the visitor details the agent collected into each conversation's analysis.
-                "data_collection": {
-                    "visitor_name": {"type": "string", "description": "The visitor's first name, if given."},
-                    "visitor_email": {"type": "string", "description": "The visitor's email, if given."},
-                    "request_summary": {"type": "string", "description": "One sentence on what the visitor needed."},
-                },
+                # The lead the agent gathered, pulled out of each conversation for the salesperson.
+                "data_collection": LEAD_FIELDS,
             },
         },
     )
     return agent["agent_id"]
 
 
-# The business details the intake form asks for, as (key, label, hint). The form shows them;
-# facts_text() turns the answers into the document the agent always has in its prompt.
+def lead_field(description):
+    return {"type": "string", "description": description + " Leave empty if the visitor didn't say."}
+
+
+# What ElevenLabs pulls out of each conversation: the lead summary the business plan describes,
+# ready for the CRM and the salesperson.
+LEAD_FIELDS = {
+    "visitor_name": lead_field("The visitor's name."),
+    "visitor_phone": lead_field("The visitor's phone number."),
+    "visitor_email": lead_field("The visitor's email address."),
+    "location": lead_field("Where the visitor is or where the work is: city, ZIP code, or address."),
+    "service_needed": lead_field("The service or help the visitor needs, in one sentence."),
+    "urgency": lead_field("How urgent it is: emergency, within days, within weeks, or just researching."),
+    "callback_time": lead_field("When the visitor would like to be contacted."),
+    "lead_details": lead_field("Other details the visitor gave that a salesperson needs before calling, "
+                               "such as the industry guide's details to gather."),
+    "qualified": lead_field("Whether the request fits the jobs the business takes, according to its facts: "
+                            "yes, no, or unclear, with the reason."),
+    "request_summary": lead_field("One or two sentences on what the visitor wanted and what they were told."),
+}
+
+
+# The business details the intake form asks for, as (key, label, hint). They follow the five
+# questions every prospect asks (can you help me, do you serve my area, what will it cost, how soon
+# can we start, why should I choose you), then the lead rules and limits. The form shows them;
+# facts_text() turns the answers into the document the agent always has in its prompt. Answers are
+# saved by key, so keep the keys when changing labels; earlier requests keep their answers.
 FACT_FIELDS = [
-    ("services", "What you sell or do", "Your main products or services, in a few lines"),
-    ("pricing", "Pricing", "Prices, plans, or how you quote"),
-    ("hours", "Hours and location", "Opening hours, address, or service area"),
+    ("services", "What you do and who you help",
+     "Your main services, the problems you solve, and any jobs you don't take"),
+    ("service_area", "Where you serve", "Cities, counties, or ZIP codes; for law firms, the jurisdictions"),
+    ("pricing", "Pricing", "Fees, how you quote, free estimates or consultations, and financing"),
+    ("hours", "Hours and how soon you can start",
+     "Opening hours, emergency service, and the usual wait for a visit or consultation"),
+    ("why_choose", "Why customers choose you",
+     "Licenses, insurance, years of experience, guarantees, awards, and where to read your reviews"),
+    ("lead_rules", "Which leads you want",
+     "The jobs you want most and the ones to turn away, and who on your team follows up"),
     ("values", "Values and tone of voice", "How the assistant should sound, and what you stand for"),
     ("never_discuss", "Topics the assistant must never discuss", "Such as competitors, legal advice, or discounts"),
 ]
@@ -376,6 +417,21 @@ def add_industry_doc(agent_id, industry, doc_id):
     knowledge_base.append(industry_doc_entry(industry, doc_id))
     call("PATCH", f"/agents/{agent_id}",
          json={"conversation_config": {"agent": {"prompt": {"knowledge_base": knowledge_base}}}})
+
+
+def delete(path):
+    """Delete an agent ("/agents/ID") or a knowledge base document or folder ("/knowledge-base/ID").
+
+    force=true deletes a document even while agents use it, and removes it from them; for a
+    folder it also deletes every page in it. Something already gone (404), such as an agent
+    deleted in the ElevenLabs dashboard, counts as deleted, so a failed delete can be retried."""
+    try:
+        response = requests.delete(f"{API}{path}", headers={"xi-api-key": api_key()}, params={"force": "true"},
+                                   timeout=60)
+    except requests.RequestException as e:
+        raise BuildError(f"Couldn't reach ElevenLabs ({e}).")
+    if not response.ok and response.status_code != 404:
+        raise BuildError(f"DELETE {path} failed ({response.status_code}): {response.text}")
 
 
 def embed_code(agent_id):

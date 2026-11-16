@@ -2,7 +2,8 @@
 
 Run it from the repository root with:
     flask --app backend/app run --debug --port 5001
-then open http://127.0.0.1:5001 (intake form) or http://127.0.0.1:5001/admin (admin pages).
+then open http://127.0.0.1:5001 (home page), http://127.0.0.1:5001/start (intake form), or
+http://127.0.0.1:5001/admin (admin pages).
 
 (Port 5000 is taken by AirPlay Receiver on most Macs, hence 5001.)
 
@@ -22,7 +23,7 @@ from werkzeug.utils import secure_filename
 
 import db
 from build_agent import (DEMO_DAYS, FACT_FIELDS, FILE_TYPES, MAX_FILE_BYTES, PUBLIC_URL, BuildError, add_industry_doc,
-                         check_site, company_name, create_industry_doc, embed_code, facts_text, set_allowed_domains,
+                         check_site, company_name, create_industry_doc, delete, embed_code, facts_text, set_allowed_domains,
                          update_text_doc)
 
 # The repository root, one folder up from this file. templates/, static/ and uploads/ are there.
@@ -39,13 +40,19 @@ app.secret_key = os.environ.get("SECRET_KEY") or os.urandom(32)
 
 
 @app.get("/")
+def home():
+    """The public home page that explains the product and links to the demo and intake forms."""
+    return render_template("base/home.html")
+
+
+@app.get("/start")
 def intake():
     # request.args are the values after "?" in the address. The demo page links here with
     # ?company=...&website=...&email=... so the form starts filled in.
     return render_template("base/intake.html", fields=FACT_FIELDS, form=request.args, error=None)
 
 
-@app.post("/")
+@app.post("/start")
 def submit():
     form = request.form
 
@@ -101,7 +108,7 @@ def submit():
         paths.append(path)
 
     facts = {key: form.get(key, "").strip() for key, _, _ in FACT_FIELDS if form.get(key, "").strip()}
-    # A new industry is added as a draft; the worker writes its common questions for you to approve.
+    # A new industry is added as a draft; the worker writes its sales playbook for you to approve.
     db.add_request(company, website, email, facts=facts, files=paths, folder_id=demo_crawl(website),
                    industry_id=db.add_industry(industry))
     # Redirect after a successful POST, so refreshing the thanks page cannot submit twice.
@@ -370,6 +377,40 @@ def admin_action(request_id, action):
     return redirect(url_for("admin_review", request_id=request_id))
 
 
+@app.post("/admin/requests/<int:request_id>/delete")
+def admin_delete_request(request_id):
+    """Delete a request for good: its agent and documents in ElevenLabs, its uploaded files and
+    demo screenshot, and its row. ElevenLabs goes first, so a failure there leaves the request
+    on the page to try again, instead of an agent nobody can see."""
+    found = get_or_404(request_id)
+    if found["status"] == "building":
+        flash("Wait for the build to finish before deleting this request.", "error")
+        return redirect(url_for("admin_review", request_id=request_id))
+
+    paths = [f"/agents/{found['agent_id']}"] if found["agent_id"] else []
+    paths += [f"/knowledge-base/{doc}" for doc in [found["facts_doc_id"], *found["file_doc_ids"]] if doc]
+    # A client's agent can reuse its demo's crawl folder, so keep the folder while another request uses it.
+    if found["folder_id"] and not any(r["folder_id"] == found["folder_id"] and r["id"] != request_id
+                                      for r in db.list_requests()):
+        paths.append(f"/knowledge-base/{found['folder_id']}")
+    try:
+        for path in paths:
+            delete(path)
+    except BuildError as e:
+        flash(f"ElevenLabs didn't delete everything, so the request was kept. Try again. ({e})", "error")
+        return redirect(url_for("admin_review", request_id=request_id))
+
+    # Uploads sit in their own folder, uploads/<random name>/; only remove folders inside uploads/.
+    for folder in {os.path.dirname(path) for path in found["files"]}:
+        if os.path.dirname(folder) == UPLOADS:
+            shutil.rmtree(folder, ignore_errors=True)
+    if found["screenshot"] and os.path.isfile(found["screenshot"]):
+        os.remove(found["screenshot"])
+    db.delete_request(request_id)
+    flash(f"Deleted {found['company']}" + (" and its agent." if found["agent_id"] else "."))
+    return redirect(url_for("admin_list"))
+
+
 @app.post("/admin/requests/<int:request_id>/facts")
 def admin_save_facts(request_id):
     found = get_or_404(request_id)
@@ -486,3 +527,23 @@ def admin_rewrite_industry(industry_id):
         db.update_industry(industry_id, questions="", error=None)
         flash("The worker will write new questions as soon as it's free.")
     return redirect(url_for("admin_industry", industry_id=industry_id))
+
+
+@app.post("/admin/industries/<int:industry_id>/delete")
+def admin_delete_industry(industry_id):
+    """Delete an industry and its questions. Deleting the shared document also removes it from
+    every agent that uses it. The clients' requests and agents stay."""
+    found = industry_or_404(industry_id)
+    back = redirect(url_for("admin_industry", industry_id=industry_id))
+    if any(r["status"] == "building" for r in db.industry_requests(industry_id)):
+        flash("An agent in this industry is being built. Wait for it to finish before deleting.", "error")
+        return back
+    if found["doc_id"]:
+        try:
+            delete(f"/knowledge-base/{found['doc_id']}")
+        except BuildError as e:
+            flash(f"ElevenLabs didn't delete the questions, so the industry was kept. Try again. ({e})", "error")
+            return back
+    db.delete_industry(industry_id)
+    flash(f"Deleted {found['name']}." + (" Its agents no longer have its questions." if found["doc_id"] else ""))
+    return redirect(url_for("admin_industries"))

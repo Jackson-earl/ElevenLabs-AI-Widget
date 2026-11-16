@@ -16,7 +16,8 @@
     </p>
   </div>
 
-  {% if header_actions %}
+  {# Nothing can be done to a request while the worker is building it. #}
+  {% if r.status != 'building' %}
   <div class="actions">
     {% if 'rebuild' in header_actions %}
       <form method="post" action="{{ url_for('admin_action', request_id=r.id, action='rebuild') }}"
@@ -26,6 +27,12 @@
       <form method="post" action="{{ url_for('admin_action', request_id=r.id, action='reject') }}"
             onsubmit="return confirm('Reject this request?')"><button class="danger">Reject</button></form>
     {% endif %}
+    {% set warning = 'Delete ' ~ r.company ~ (' and its agent' if r.agent_id else '') ~ ' for good?'
+         ~ (' The client\'s widget stops working.' if r.status == 'approved' else '')
+         ~ (' The demo link stops working.' if r.kind == 'demo' and r.agent_id else '') %}
+    {# tojson makes the name safe inside the script, even with quotes like "Carr's". #}
+    <form method="post" action="{{ url_for('admin_delete_request', request_id=r.id) }}" data-confirm="{{ warning }}"
+          onsubmit="return confirm(this.dataset.confirm)"><button class="danger">Delete</button></form>
   </div>
   {% endif %}
 </div>

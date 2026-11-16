@@ -170,6 +170,11 @@ def claim_next():
     return get_request(row["id"])
 
 
+def delete_request(request_id):
+    with connect() as db:
+        db.execute("DELETE FROM requests WHERE id = ?", (request_id,))
+
+
 def update(request_id, **fields):
     """Change some columns of one request, for example update(3, status="failed", error="...")."""
     unknown = set(fields) - UPDATABLE
@@ -214,6 +219,13 @@ def industry_requests(industry_id):
     with connect() as db:
         rows = db.execute("SELECT * FROM requests WHERE industry_id = ? ORDER BY id DESC", (industry_id,))
         return [to_dict(row) for row in rows]
+
+
+def delete_industry(industry_id):
+    """Delete an industry. Its requests stay, with no industry."""
+    with connect() as db:
+        db.execute("UPDATE requests SET industry_id = NULL WHERE industry_id = ?", (industry_id,))
+        db.execute("DELETE FROM industries WHERE id = ?", (industry_id,))
 
 
 def update_industry(industry_id, **fields):

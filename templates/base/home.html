@@ -1,0 +1,134 @@
+{% extends "base/base.html" %}
+{# The product name appears only here and in the footer below, so it is easy to change. #}
+{% set brand = "Touchstone AI Automations" %}
+{% block title %}{{ brand }}: an AI assistant that knows your business{% endblock %}
+{% block head %}
+  <meta name="description" content="An AI assistant for your website that has read every page, knows your industry, and answers visitors by voice or chat, day and night.">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/home.css') }}">
+{% endblock %}
+{% block header %}
+<header class="site-header">
+  <div class="wrap site-header-inner">
+    <a class="brand" href="{{ url_for('home') }}">{{ brand }}</a>
+    <nav>
+      <a href="#how">How it works</a>
+      <a href="#faq">Questions</a>
+      <a class="button small" href="{{ url_for('demo_form') }}">Free demo</a>
+    </nav>
+  </div>
+</header>
+{% endblock %}
+{% block main_class %}home{% endblock %}
+{% block content %}
+
+<section class="hero">
+  <div class="wrap hero-inner">
+    <div>
+      <p class="eyebrow">Personalized AI assistant for websites</p>
+      <h1>Answer every visitor, even when you're busy.</h1>
+      <p class="hero-lead">We build an assistant that has read your whole website and knows your industry. It answers questions by voice or chat, any time of day, and points people to you when they're ready.</p>
+      <div class="cta-row">
+        <a class="button" href="{{ url_for('demo_form') }}">See it on your website</a>
+        <a class="button secondary" href="{{ url_for('intake') }}">Get started</a>
+      </div>
+      <p class="muted">The demo is free. Enter your website and we email you a link in minutes.</p>
+    </div>
+
+    {# A sketch of a conversation, drawn with HTML so it stays sharp and needs no image file. #}
+    <div class="mock" aria-hidden="true">
+      <div class="mock-bar"><span></span><span></span><span></span></div>
+      <div class="mock-body">
+        <p class="bubble visitor">Do you give free estimates?</p>
+        <p class="bubble agent">Yes. We'll come out, look at the job, and give you a written estimate at no cost. Most visits take about 30 minutes. Would you like me to take your details so the team can call you?</p>
+        <p class="bubble visitor">Sure, it's Dana.</p>
+        <p class="bubble agent typing"><span></span><span></span><span></span></p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="section" id="how">
+  <div class="wrap">
+    <h2>How it works</h2>
+    <ol class="steps three">
+      <li><strong>Tell us your website.</strong> Add your hours, pricing, or documents if you like. It takes a few minutes.</li>
+      <li><strong>We build and test it.</strong> We read every page of your site, add what customers in your industry usually ask, and try it ourselves.</li>
+      <li><strong>Paste two lines.</strong> We send you a short code for WordPress, Wix, Squarespace, Shopify, Webflow, or any other site.</li>
+    </ol>
+  </div>
+</section>
+
+<section class="section alt">
+  <div class="wrap">
+    <h2>What your assistant does</h2>
+    <div class="features">
+      <div class="feature">
+        <h3>Knows your website</h3>
+        <p>It reads every page, and checks your site again each week, so answers stay current as you change it.</p>
+      </div>
+      <div class="feature">
+        <h3>Knows your field</h3>
+        <p>It can explain the questions customers in your industry ask most, then tell them how you handle it.</p>
+      </div>
+      <div class="feature">
+        <h3>Talks or types</h3>
+        <p>Visitors can speak to it like a phone call or chat by text, whichever they prefer.</p>
+      </div>
+      <div class="feature">
+        <h3>Sticks to the facts</h3>
+        <p>Your prices, hours, and policies come only from you. When it doesn't know, it says so and offers to connect them with your team.</p>
+      </div>
+      <div class="feature">
+        <h3>Works around the clock</h3>
+        <p>Evenings, weekends, and busy days. Nobody waits for a reply or leaves for a competitor.</p>
+      </div>
+      <div class="feature">
+        <h3>Only on your site</h3>
+        <p>It's locked to your domain, so nobody else can put your assistant on their website.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="section" id="faq">
+  <div class="wrap narrow">
+    <h2>Questions</h2>
+    <details>
+      <summary>Do I need to change my website?</summary>
+      <p>No. You paste two lines of code once, or forward them to whoever looks after your site. We send step-by-step instructions for each website builder.</p>
+    </details>
+    <details>
+      <summary>What if my website is missing information?</summary>
+      <p>Tell us on the setup form, or send us price lists, FAQs, and policies as files. Anything you give us takes priority over your website.</p>
+    </details>
+    <details>
+      <summary>How long does it take?</summary>
+      <p>A demo usually arrives by email within minutes. Your finished assistant usually arrives within one business day, after we've tested it.</p>
+    </details>
+    <details>
+      <summary>Can I see it before I decide?</summary>
+      <p>Yes. The free demo shows the assistant on a picture of your own homepage, ready to try. The link works for a week.</p>
+    </details>
+  </div>
+</section>
+
+<section class="section final">
+  <div class="wrap">
+    <div class="final-inner">
+      <h2>See your assistant on your own homepage.</h2>
+      <p>Free, and it takes a minute to ask for.</p>
+      <a class="button" href="{{ url_for('demo_form') }}">Get my free demo</a>
+    </div>
+  </div>
+</section>
+
+<footer class="site-footer">
+  <div class="wrap site-footer-inner">
+    <span>&copy; {{ brand }}</span>
+    <nav>
+      <a href="{{ url_for('demo_form') }}">Free demo</a>
+      <a href="{{ url_for('intake') }}">Get started</a>
+    </nav>
+  </div>
+</footer>
+{% endblock %}

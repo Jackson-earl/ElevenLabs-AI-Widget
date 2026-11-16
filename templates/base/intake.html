@@ -18,7 +18,7 @@
     <label for="company">Company name</label>
     <input type="text" id="company" name="company" value="{{ form.get('company', '') }}" required>
 
-    <label for="industry">Your industry <span class="hint">In a few words. Your assistant also learns the questions customers usually ask in your field.</span></label>
+    <label for="industry">Your industry <span class="hint">In a few words. Your assistant also learns what customers in your field usually ask before they buy.</span></label>
     <input type="text" id="industry" name="industry" value="{{ form.get('industry', '') }}" placeholder="Such as Plumbing, Dental clinic, or Roofing" maxlength="60" required>
 
     <label for="website">Website</label>
@@ -30,7 +30,7 @@
 
   <section class="card">
     <h2>About your business <span class="optional">(optional)</span></h2>
-    <p>Anything you write here overrides what's on your website, so use it for details that must be exactly right.</p>
+    <p>These are the answers your assistant gives when customers ask whether you can help, where you work, what it costs, how soon you can start, and why they should choose you. Anything you write here overrides your website, so use it for details that must be exactly right.</p>
     {% for key, label, hint in fields %}
       <label for="{{ key }}">{{ label }} <span class="hint">{{ hint }}</span></label>
       <textarea id="{{ key }}" name="{{ key }}">{{ form.get(key, '') }}</textarea>

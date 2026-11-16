@@ -9,7 +9,7 @@ Intake requests end at 'ready_for_review' for you to check. Demo requests (from 
 form) are finished here instead: the worker takes a screenshot of the homepage, makes a secret
 link, and emails it to the person who asked.
 
-It also writes the common questions for each new industry a client names, as a draft for you to
+It also writes the sales playbook for each new industry a client names, as a draft for you to
 approve on the admin's Industries page. Builds use an industry's questions once you approve them.
 """
 
@@ -157,7 +157,7 @@ def write_new_industries():
     for industry in db.list_industries():
         if industry["status"] != "draft" or industry["questions"] or industry["error"]:
             continue
-        log.info("Writing the common questions for %s", industry["name"])
+        log.info("Writing the sales playbook for %s", industry["name"])
         try:
             db.update_industry(industry["id"], questions=write_questions(industry["name"]))
             log.info("Questions for %s are ready for your approval", industry["name"])
