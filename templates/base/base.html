@@ -3,18 +3,21 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light dark">
   <title>{% block title %}Set up your AI assistant{% endblock %}</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/theme.css') }}">
   <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
   {% block head %}{% endblock %}
 </head>
 <body>
-  {% block header %}{% endblock %}
+  {% block header %}{% include "base/nav.html" %}{% endblock %}
   <main class="{% block main_class %}{% endblock %}">
     {% for category, message in get_flashed_messages(with_categories=true) %}
       <p class="flash {{ category }}" role="status">{{ message }}</p>
     {% endfor %}
     {% block content %}{% endblock %}
   </main>
+  {% block footer %}<footer class="foot">© Touchstone AI Automations</footer>{% endblock %}
   {% if refresh %}
   <script>
     // Reload every 5 seconds to show build progress, but stop once someone types, so a

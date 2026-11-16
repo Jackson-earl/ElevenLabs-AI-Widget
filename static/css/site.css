@@ -1,42 +1,5 @@
 /* Styles for the public pages: the home page and the free demo pages.
-   Colors follow businessdesigncorp.com: cyan #08cae8, pale cyan #dcf6fa, and slate #2d3435.
-   The pages follow the visitor's light or dark setting. */
-
-:root {
-  --bg: #ffffff;
-  --soft: #f0fafb;
-  --panel: #ffffff;
-  --text: #10191b;
-  --muted: #4f5d60;
-  --line: #d6e8ec;
-  --accent: #08cae8;
-  /* Button text is dark because white on #08cae8 is hard to read. */
-  --on-accent: #04262c;
-  /* A deeper cyan for text on light backgrounds, where #08cae8 is too faint to read. */
-  --accent-text: #0789a0;
-  --glow: #dcf6fa;
-  --band: #2d3435;
-  --band-text: #f1f7f8;
-  --error: #b42318;
-  --error-soft: #fef3f2;
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --bg: #121819;
-    --soft: #172022;
-    --panel: #1c2527;
-    --text: #ecf7f9;
-    --muted: #9db0b4;
-    --line: #2d3435;
-    --accent-text: #3fd8ef;
-    --glow: #0f343b;
-    --band: #08cae8;
-    --band-text: #04262c;
-    --error: #fda29b;
-    --error-soft: #3b1714;
-  }
-}
+   Colors and the nav come from theme.css, which loads first. */
 
 * { box-sizing: border-box; }
 
@@ -51,21 +14,9 @@ body {
 h1, h2, p { margin: 0; }
 a { color: inherit; text-decoration: none; }
 
-/* ---------------------------------------------------------------- Nav and footer */
-
-.nav { display: flex; align-items: center; gap: 20px; max-width: 1100px; margin: 0 auto; padding: 16px 24px; }
-.logo { display: flex; align-items: center; gap: 8px; margin-right: auto; font-weight: 700; font-size: 15px; letter-spacing: -0.01em; }
-.logo-rest { font-weight: 500; color: var(--muted); }
-.mark { width: 24px; height: 24px; border-radius: 999px; display: grid; place-items: center; background: var(--accent); color: var(--on-accent); }
-.mark svg { display: block; }
-.nav-link { color: var(--muted); font-size: 14px; }
-.nav-link:hover { color: var(--text); }
-
-.foot { max-width: 1100px; margin: 0 auto; padding: 20px 24px; color: var(--muted); font-size: 13px; }
-
 /* ---------------------------------------------------------------- Buttons */
 
-.btn {
+.button {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -80,16 +31,16 @@ a { color: inherit; text-decoration: none; }
   border-radius: 999px;
   cursor: pointer;
 }
-.btn.sm { padding: 8px 18px; font-size: 14px; }
-.btn.ghost { color: var(--accent-text); background: transparent; box-shadow: inset 0 0 0 1px var(--line); }
-.btn:hover { filter: brightness(1.08); }
-.btn:active { transform: scale(0.97); }
-.btn:focus-visible, .form input:focus-visible, .nav a:focus-visible { outline: 2px solid var(--accent-text); outline-offset: 2px; }
+.button.small { padding: 8px 18px; font-size: 14px; }
+.button.ghost { color: var(--accent-text); background: transparent; box-shadow: inset 0 0 0 1px var(--line); }
+.button:hover { filter: brightness(1.08); }
+.button:active { transform: scale(0.97); }
+.button:focus-visible, .form input:focus-visible { outline: 2px solid var(--accent-text); outline-offset: 2px; }
 
 /* ---------------------------------------------------------------- Hero */
 
 .hero { display: grid; justify-items: center; gap: 20px; padding: 56px 24px 48px; text-align: center; }
-.pill { padding: 4px 14px; border-radius: 999px; font-size: 13px; font-weight: 600; color: var(--accent-text); background: var(--glow); }
+.pill { padding: 4px 14px; border-radius: 999px; font-size: 13px; font-weight: 600; color: var(--accent-text); background: var(--accent-soft); }
 h1 { max-width: 15ch; font-size: 56px; line-height: 1.04; font-weight: 800; letter-spacing: -0.03em; text-wrap: balance; }
 h1 em { font-style: normal; color: var(--accent-text); }
 .lead { font-size: 18px; color: var(--muted); }
@@ -109,7 +60,7 @@ h1 em { font-style: normal; color: var(--accent-text); }
   max-width: 560px;
   padding: 6px;
   border-radius: 999px;
-  background: var(--panel);
+  background: var(--surface);
   box-shadow: 0 0 0 1px var(--line), 0 10px 30px -18px rgb(0 0 0 / 0.35);
 }
 .form input {
@@ -127,7 +78,7 @@ h1 em { font-style: normal; color: var(--accent-text); }
 .trap { position: absolute; left: -10000px; }
 
 .error { max-width: 560px; padding: 12px 16px; border-radius: 16px; color: var(--error); background: var(--error-soft); }
-.done { display: grid; gap: 4px; justify-items: center; width: 100%; max-width: 520px; padding: 18px; border-radius: 20px; background: var(--glow); }
+.done { display: grid; gap: 4px; justify-items: center; width: 100%; max-width: 520px; padding: 18px; border-radius: 20px; background: var(--accent-soft); }
 
 /* ---------------------------------------------------------------- Sections */
 
@@ -136,7 +87,7 @@ h2 { font-size: 30px; line-height: 1.15; font-weight: 800; letter-spacing: -0.02
 /* A pale cyan section, used to alternate with plain ones. */
 .soft { background: var(--soft); }
 .band { display: grid; justify-items: center; gap: 20px; padding: 56px 24px; color: var(--band-text); background: var(--band); }
-.band .btn { color: var(--band); background: var(--band-text); }
+.band .button { color: var(--band); background: var(--band-text); }
 
 .steps { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; width: 100%; max-width: 680px; margin: 0 auto; padding-bottom: 48px; }
 .section .steps { padding-bottom: 0; }
@@ -145,15 +96,15 @@ h2 em { font-style: normal; color: var(--accent-text); }
 
 /* Three short descriptions in a row, such as what the assistant knows. */
 .features { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; width: 100%; max-width: 960px; margin: 0 auto; }
-.feature { display: grid; align-content: start; gap: 10px; padding: 24px; border-radius: 20px; background: var(--panel); box-shadow: 0 0 0 1px var(--line); }
+.feature { display: grid; align-content: start; gap: 10px; padding: 24px; border-radius: 20px; background: var(--surface); box-shadow: 0 0 0 1px var(--line); }
 .feature h3 { margin: 0; font-size: 17px; }
 .feature p { font-size: 14px; color: var(--muted); }
-.icon { width: 44px; height: 44px; border-radius: 999px; display: grid; place-items: center; color: var(--accent-text); background: var(--glow); }
+.icon { width: 44px; height: 44px; border-radius: 999px; display: grid; place-items: center; color: var(--accent-text); background: var(--accent-soft); }
 .icon svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
 
 /* ---------------------------------------------------------------- Example website */
 
-.site { width: 100%; max-width: 720px; margin-top: 12px; overflow: hidden; text-align: left; border-radius: 20px; background: var(--panel); box-shadow: 0 0 0 1px var(--line), 0 24px 48px -28px rgb(0 0 0 / 0.45); pointer-events: none; user-select: none; }
+.site { width: 100%; max-width: 720px; margin-top: 12px; overflow: hidden; text-align: left; border-radius: 20px; background: var(--surface); box-shadow: 0 0 0 1px var(--line), 0 24px 48px -28px rgb(0 0 0 / 0.45); pointer-events: none; user-select: none; }
 .site-bar { display: flex; align-items: center; gap: 6px; padding: 10px 14px; background: var(--soft); border-bottom: 1px solid var(--line); }
 .site-bar i { width: 8px; height: 8px; border-radius: 50%; background: var(--line); }
 .site-bar span { margin-left: 8px; font-size: 12px; color: var(--muted); }
@@ -183,13 +134,11 @@ h2 em { font-style: normal; color: var(--accent-text); }
 }
 
 @media (max-width: 600px) {
-  .nav { gap: 12px; padding: 12px 16px; }
-  .nav-link, .logo-rest { display: none; }
   .hero { gap: 16px; padding: 36px 18px 32px; }
   h1 { font-size: 36px; }
   h2 { font-size: 24px; }
   .lead { font-size: 16px; }
-  .actions .btn { flex: 1; }
+  .actions .button { flex: 1; }
   .form { flex-direction: column; border-radius: 24px; }
   .section, .band { padding: 40px 16px; }
   .steps { gap: 8px; padding: 0 12px 40px; }
@@ -202,5 +151,5 @@ h2 em { font-style: normal; color: var(--accent-text); }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .btn:active { transform: none; }
+  .button:active { transform: none; }
 }

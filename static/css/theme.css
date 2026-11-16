@@ -1,0 +1,74 @@
+/* Touchstone's colors and site nav, shared by every page: the public pages (site.css), and the
+   intake form and admin pages (main.css). Load it first. Colors follow businessdesigncorp.com:
+   cyan #08cae8, pale cyan #dcf6fa, and slate #2d3435. Pages follow the visitor's light or dark setting. */
+
+:root {
+  --bg: #ffffff;
+  --soft: #f0fafb;
+  --surface: #ffffff;
+  --text: #10191b;
+  --muted: #4f5d60;
+  --line: #d6e8ec;
+  --accent: #08cae8;
+  /* Text on cyan buttons is dark because white on #08cae8 is hard to read. */
+  --on-accent: #04262c;
+  /* A deeper cyan for text and links, where #08cae8 is too faint to read. */
+  --accent-text: #0789a0;
+  --accent-soft: #dcf6fa;
+  --band: #2d3435;
+  --band-text: #f1f7f8;
+  --error: #b42318;
+  --error-soft: #fef3f2;
+  --error-line: #fecdca;
+  --success: #05603a;
+  --success-soft: #ecfdf3;
+  --success-line: #abefc6;
+  --warning: #93370d;
+  --warning-soft: #fffaeb;
+  --radius: 20px;
+  --radius-sm: 12px;
+  --shadow: 0 1px 2px rgb(16 24 40 / 0.05);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #121819;
+    --soft: #172022;
+    --surface: #1c2527;
+    --text: #ecf7f9;
+    --muted: #9db0b4;
+    --line: #2d3435;
+    --accent-text: #3fd8ef;
+    --accent-soft: #0f343b;
+    --band: #08cae8;
+    --band-text: #04262c;
+    --error: #fda29b;
+    --error-soft: #3b1714;
+    --error-line: #6b2a24;
+    --success: #75e0a7;
+    --success-soft: #0f2e1f;
+    --success-line: #1f5c3d;
+    --warning: #fec84b;
+    --warning-soft: #33260b;
+    --shadow: none;
+  }
+}
+
+/* ---------------------------------------------------------------- Nav and footer */
+
+.nav { display: flex; align-items: center; gap: 20px; max-width: 1100px; margin: 0 auto; padding: 16px 24px; }
+.logo { display: flex; align-items: center; gap: 8px; margin-right: auto; font-weight: 700; font-size: 15px; letter-spacing: -0.01em; color: var(--text); }
+.logo-rest { font-weight: 500; color: var(--muted); }
+.mark { width: 24px; height: 24px; border-radius: 999px; display: grid; place-items: center; background: var(--accent); color: var(--on-accent); }
+.mark svg { display: block; }
+.nav a, .nav a:hover { text-decoration: none; }
+.nav-link { color: var(--muted); font-size: 14px; }
+.nav-link:hover, .nav-link[aria-current="page"] { color: var(--text); }
+.nav a:focus-visible { outline: 2px solid var(--accent-text); outline-offset: 2px; }
+
+.foot { max-width: 1100px; margin: 0 auto; padding: 20px 24px; color: var(--muted); font-size: 13px; }
+
+@media (max-width: 600px) {
+  .nav { gap: 12px; padding: 12px 16px; }
+  .nav-link.public, .logo-rest.public { display: none; }
+}

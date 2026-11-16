@@ -1,12 +1,14 @@
 {% extends "base/base.html" %}
 {% block head %}<link rel="stylesheet" href="{{ url_for('static', filename='css/admin.css') }}">{% endblock %}
 {% block header %}
-<header class="topbar">
-  <div class="topbar-inner">
-    <strong>Assistant admin</strong>
-    <a href="{{ url_for('admin_list') }}">Requests</a>
-    <a href="{{ url_for('admin_industries') }}">Industries</a>
-  </div>
-</header>
+<nav class="nav">
+  <a class="logo" href="{{ url_for('admin_list') }}">
+    <span class="mark">{% include "base/mark.svg" %}</span>
+    <span>Touchstone<span class="logo-rest"> Admin</span></span>
+  </a>
+  <a class="nav-link" href="{{ url_for('admin_list') }}" {% if request.endpoint == 'admin_list' %}aria-current="page"{% endif %}>Requests</a>
+  <a class="nav-link" href="{{ url_for('admin_industries') }}" {% if request.endpoint == 'admin_industries' %}aria-current="page"{% endif %}>Industries</a>
+</nav>
 {% endblock %}
+{% block footer %}{% endblock %}
 {% block main_class %}wide{% endblock %}

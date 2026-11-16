@@ -1,0 +1,9 @@
+{# The nav on every page a client sees. Its styles are in theme.css. #}
+<nav class="nav">
+  <a class="logo" href="{{ url_for('home') }}">
+    <span class="mark">{% include "base/mark.svg" %}</span>
+    <span>Touchstone<span class="logo-rest public"> AI Automations</span></span>
+  </a>
+  <a class="nav-link public" href="{{ url_for('home') }}#how">How it works</a>
+  <a class="button small" href="{{ url_for('demo_form') }}">Free demo</a>
+</nav>
