@@ -9,7 +9,7 @@
   --surface: #1c2527;
   --text: #ecf7f9;
   --muted: #9db0b4;
-  --line: #2d3435;
+  --line: #566b70;
   --accent-text: #3fd8ef;
   --accent-soft: #0f343b;
   --error: #fda29b;
@@ -44,7 +44,8 @@ table { width: 100%; border-collapse: collapse; }
 th, td { text-align: left; padding: 12px 16px; border-bottom: 1px solid var(--line); vertical-align: top; }
 th { font-size: 13px; color: var(--muted); font-weight: 600; background: var(--soft); }
 tr:last-child td { border-bottom: 0; }
-tbody tr:hover { background: var(--soft); }
+/* Lighter than the table, so the row under the pointer stands out. */
+tbody tr:hover { background: #2e3e42; }
 td a { font-weight: 600; }
 
 /* ---------------------------------------------------------------- Status pills */
