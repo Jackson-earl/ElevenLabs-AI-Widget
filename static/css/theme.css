@@ -1,6 +1,6 @@
 /* Touchstone's colors and site nav, shared by every page: the public pages (site.css), and the
    intake form and admin pages (main.css). Load it first. Colors follow businessdesigncorp.com:
-   cyan #08cae8, pale cyan #dcf6fa, and slate #2d3435. Pages follow the visitor's light or dark setting. */
+   cyan #08cae8, pale cyan #dcf6fa, and slate #2d3435. */
 
 :root {
   --bg: #ffffff;
@@ -28,30 +28,6 @@
   --radius: 20px;
   --radius-sm: 12px;
   --shadow: 0 1px 2px rgb(16 24 40 / 0.05);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --bg: #121819;
-    --soft: #172022;
-    --surface: #1c2527;
-    --text: #ecf7f9;
-    --muted: #9db0b4;
-    --line: #2d3435;
-    --accent-text: #3fd8ef;
-    --accent-soft: #0f343b;
-    --band: #08cae8;
-    --band-text: #04262c;
-    --error: #fda29b;
-    --error-soft: #3b1714;
-    --error-line: #6b2a24;
-    --success: #75e0a7;
-    --success-soft: #0f2e1f;
-    --success-line: #1f5c3d;
-    --warning: #fec84b;
-    --warning-soft: #33260b;
-    --shadow: none;
-  }
 }
 
 /* ---------------------------------------------------------------- Nav and footer */
