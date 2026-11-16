@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  {# The pages follow the visitor's light or dark setting; this tells the browser to match its own controls. #}
+  <meta name="color-scheme" content="light dark">
+  <title>{% block title %}Touchstone AI Automations{% endblock %}</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/site.css') }}">
+</head>
+<body>
+  <nav class="nav">
+    <a class="logo" href="{{ url_for('home') }}">
+      <span class="mark">{% include "base/mark.svg" %}</span>
+      <span>Touchstone<span class="logo-rest"> AI Automations</span></span>
+    </a>
+    <a class="nav-link" href="{{ url_for('home') }}#how">How it works</a>
+    <a class="btn sm" href="{{ url_for('demo_form') }}">Free demo</a>
+  </nav>
+  <main>
+    {% block content %}{% endblock %}
+  </main>
+  <footer class="foot">© Touchstone AI Automations</footer>
+</body>
+</html>

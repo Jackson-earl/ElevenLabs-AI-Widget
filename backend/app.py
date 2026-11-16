@@ -187,7 +187,7 @@ def demo_submit():
 
 @app.get("/demo/thanks")
 def demo_thanks():
-    return render_template("demo/demo_thanks.html")
+    return render_template("demo/demo_thanks.html", days=DEMO_DAYS)
 
 
 def live_demo_or_404(token):

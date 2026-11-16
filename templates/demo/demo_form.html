@@ -1,29 +1,25 @@
-{% extends "base/base.html" %}
-{% block title %}See your AI assistant on your own website{% endblock %}
-{% block head %}<link rel="stylesheet" href="{{ url_for('static', filename='css/demo.css') }}">{% endblock %}
+{% extends "base/site.html" %}
+{% block title %}Free demo: hear your website talk{% endblock %}
 {% block content %}
-<h1>See it on your website</h1>
-<p class="lead">Enter your website and your email. We'll read your site, build an assistant that knows it, and email you a link to try it on your own homepage, usually within 10 minutes. It's free.</p>
+<section class="hero">
+  <span class="pill">Free demo</span>
+  <h1>Hear your website <em>talk.</em></h1>
+  <p class="lead">An AI assistant that knows your business.</p>
+  <div class="wave" aria-hidden="true">{% for h in [10, 18, 28, 16, 32, 22, 12, 26, 34, 20, 14, 28, 18, 10, 16, 24, 12, 8] %}<i style="height:{{ h }}px"></i>{% endfor %}</div>
 
-{% if error %}<p class="error" role="alert">{{ error }}</p>{% endif %}
+  {% if error %}<p class="error" role="alert">{{ error }}</p>{% endif %}
 
-<form method="post">
-  <section class="card">
-    <label for="website">Your website</label>
-    <input type="text" id="website" name="website" value="{{ form.get('website', '') }}" placeholder="yourcompany.com" required>
-
-    <label for="email">Your email <span class="hint">We'll send the demo link here.</span></label>
-    <input type="email" id="email" name="email" value="{{ form.get('email', '') }}" required>
-
+  <form class="form" method="post">
+    <input type="text" name="website" value="{{ form.get('website', '') }}" placeholder="yourcompany.com" aria-label="Your website" required>
+    <input type="email" name="email" value="{{ form.get('email', '') }}" placeholder="Email" aria-label="Your email" required>
     {# A trap for spam bots: moved off-screen and skipped by the Tab key, so people never fill it in. #}
     <div class="trap" aria-hidden="true">
       <label for="leave_empty">Leave this empty</label>
       <input type="text" id="leave_empty" name="leave_empty" tabindex="-1" autocomplete="off">
     </div>
-  </section>
-
-  <div class="form-actions">
-    <button type="submit">Email me my demo</button>
-  </div>
-</form>
+    <button class="btn" type="submit">Get my demo</button>
+  </form>
+  <p class="fine">Free. Ready in 10 minutes.</p>
+</section>
+{% include "base/how_steps.html" %}
 {% endblock %}

@@ -1,11 +1,4 @@
-/* Extra styles for the demo pages. Loaded after main.css. */
-
-/* ---------------------------------------------------------------- Demo form */
-
-/* A trap for spam bots: moved off-screen, so people never see or fill it in. */
-.trap { position: absolute; left: -10000px; }
-
-/* ---------------------------------------------------------------- Demo page */
+/* Extra styles for the demo page a client opens from their email. Loaded after main.css. */
 
 /* The homepage picture sits behind everything. It's only a picture, so it ignores clicks. */
 .site {

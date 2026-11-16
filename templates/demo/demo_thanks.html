@@ -1,13 +1,14 @@
-{% extends "base/base.html" %}
+{% extends "base/site.html" %}
 {% block title %}Your demo is on its way{% endblock %}
 {% block content %}
-<h1>Your demo is on its way</h1>
-<p class="lead">We're reading your website and building your assistant now. If the link hasn't arrived in 10 minutes, check your spam folder.</p>
-<section class="card">
-  <ol class="steps">
-    <li>We read your website and build an assistant that knows it.</li>
-    <li>We email you a private link, usually within 10 minutes.</li>
-    <li>Open it to try the assistant on a picture of your own homepage.</li>
-  </ol>
+<section class="hero">
+  <span class="pill">Free demo</span>
+  <h1>Check your <em>inbox.</em></h1>
+  <p class="lead">Your demo link arrives in about 10 minutes.</p>
+  <div class="done">
+    <strong>Not there yet?</strong>
+    <span class="fine">Check your spam folder. The link works for {{ days }} days.</span>
+  </div>
+  <a class="btn ghost" href="{{ url_for('demo_form') }}">Try another site</a>
 </section>
 {% endblock %}
