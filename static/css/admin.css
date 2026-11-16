@@ -1,5 +1,28 @@
 /* Extra styles for the admin pages. Loaded after main.css. */
 
+/* The admin pages are always dark, so they never look like a page a client sees. These replace
+   the light colors from theme.css; everything else in main.css and below uses them as-is. */
+:root {
+  color-scheme: dark;
+  --bg: #121819;
+  --soft: #172022;
+  --surface: #1c2527;
+  --text: #ecf7f9;
+  --muted: #9db0b4;
+  --line: #2d3435;
+  --accent-text: #3fd8ef;
+  --accent-soft: #0f343b;
+  --error: #fda29b;
+  --error-soft: #3b1714;
+  --error-line: #6b2a24;
+  --success: #75e0a7;
+  --success-soft: #0f2e1f;
+  --success-line: #1f5c3d;
+  --warning: #fec84b;
+  --warning-soft: #33260b;
+  --shadow: none;
+}
+
 main.wide { padding-top: 24px; }
 
 .back { display: inline-block; margin-bottom: 16px; font-size: 14px; }
