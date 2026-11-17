@@ -119,6 +119,9 @@ def submit():
 
 # Every demo costs you a crawl and agent minutes, so cap how many strangers can start per day.
 MAX_DEMOS_PER_DAY = int(os.environ.get("MAX_DEMOS_PER_DAY", "20"))
+# For testing: set ALLOW_REPEAT_DEMOS=1 to make demos of the same website again and again.
+# Leave it unset when the site is public, so one site can't run up your crawl and agent costs.
+ALLOW_REPEAT_DEMOS = os.environ.get("ALLOW_REPEAT_DEMOS") == "1"
 EMAIL = re.compile(r"[^@\s]+@[^@\s]+\.[^@\s]+")
 
 
@@ -175,7 +178,7 @@ def demo_submit():
 
     now = time.time()
     recent = db.recent_demos(since=now - DEMO_DAYS * 24 * 3600)
-    if any(site_key(d["website"]) == site_key(website) and d["status"] not in ("failed", "rejected") for d in recent):
+    if not ALLOW_REPEAT_DEMOS and any(site_key(d["website"]) == site_key(website) and d["status"] not in ("failed", "rejected") for d in recent):
         return show_error("We've already made a demo for this website in the last week, and emailed it to the "
                           "address entered then. Contact us if you need it sent again.")
     if sum(d["created_at"] > now - 24 * 3600 for d in recent) >= MAX_DEMOS_PER_DAY:

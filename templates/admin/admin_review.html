@@ -59,7 +59,7 @@
 </section>
 {% endif %}
 
-<section class="card">
+<section class="card" style="margin-bottom: 2rem;">
   <h2>Request</h2>
   <dl>
     {% if industry %}
@@ -77,13 +77,9 @@
 </section>
 
 {% if r.agent_id %}
-<section class="card">
-  <h2>Test the agent</h2>
-  <p>Use the widget at the bottom right of this page. It's the same one the client will put on their site. Ask what they offer, what it costs, when they're open, something the site doesn't cover, and something off-topic.</p>
   {# Jinja escapes agent_id, so even an odd value can't break out of the attribute. #}
   <elevenlabs-convai agent-id="{{ r.agent_id }}"></elevenlabs-convai>
   <script src="https://unpkg.com/@elevenlabs/convai-widget-embed" async type="text/javascript"></script>
-</section>
 {% endif %}
 
 <section class="card">
