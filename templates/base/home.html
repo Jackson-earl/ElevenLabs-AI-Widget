@@ -1,40 +1,57 @@
 {% extends "base/site.html" %}
 {% block title %}Touchstone AI Automations: an AI assistant for your website{% endblock %}
 {% block content %}
-<section class="hero soft">
-  <span class="pill">Voice and chat for your website</span>
-  <h1>Answers your customers. <em>Day and night.</em></h1>
-  <p class="lead">An AI assistant that has read your website.</p>
-  <div class="actions">
-    <a class="button" href="{{ url_for('demo_form') }}">Get a free demo</a>
-    <a class="button ghost" href="#how">How it works</a>
+<section class="hero-split">
+  <div class="hero-copy">
+    <span class="pill">Voice and chat for your website</span>
+    <h1>Answers your customers. <em>Day and night.</em></h1>
+    <p class="lead">An AI assistant that has read your website and knows your industry. It answers questions by voice or chat, and passes interested customers to your team.</p>
+    {# The same form as the free demo page. Errors show on that page, with what was typed here. #}
+    <form class="form" method="post" action="{{ url_for('demo_submit') }}">
+      <input type="text" name="website" placeholder="yourcompany.com" aria-label="Your website" required>
+      <input type="email" name="email" placeholder="Email" aria-label="Your email" required>
+      {# A trap for spam bots: moved off-screen and skipped by the Tab key, so people never fill it in. #}
+      <div class="trap" aria-hidden="true">
+        <label for="leave_empty">Leave this empty</label>
+        <input type="text" id="leave_empty" name="leave_empty" tabindex="-1" autocomplete="off">
+      </div>
+      <button class="button" type="submit">Get my demo</button>
+    </form>
+    <p class="fine col-2">Free. Ready in about 10 minutes.<span class="fine col-8" style="font-weight: bold;"> No credit card required.</span></p>
   </div>
 
   {# A picture of the assistant on a client's site, drawn in HTML so it stays sharp and follows the
-     theme. It is only an illustration, so screen readers skip it and it ignores clicks. The chat
-     panel copies the ElevenLabs widget clients get, without its "Powered by" line. #}
-  <div class="site" aria-hidden="true">
-    <div class="site-bar"><i></i><i></i><i></i><span>riveraplumbing.com (example)</span></div>
+     theme. The script below plays it: the site is read, then a customer chats with the assistant.
+     It is only an illustration, so screen readers skip it and it ignores clicks. The chat panel
+     copies the ElevenLabs widget clients get, without its "Powered by" line. #}
+  <div class="site" aria-hidden="true" data-hero-demo>
+    <div class="site-bar"><i></i><i></i><i></i><span data-url>riveraplumbing.com (example)</span></div>
     <div class="site-body">
       <div class="bar" style="width:40%;height:12px"></div>
       <div class="bar" style="width:70%"></div>
       <div class="bar" style="width:55%"></div>
-      <div class="el">
+      <div class="bar" style="width:62%;margin-top:14px"></div>
+      <div class="bar" style="width:48%"></div>
+      <div class="crawl">
+        <span data-crawl-label>Assistant ready</span>
+        <div class="crawl-track"><div class="crawl-fill" data-crawl-fill></div></div>
+      </div>
+      <div class="el" data-widget>
         <div class="el-panel">
           <div class="el-top">
             <span class="el-avatar">{% include "base/mark.svg" %}</span>
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg>
           </div>
-          <div class="el-log">
+          <div class="el-log" data-log>
             <p>Hi! I'm the Rivera Plumbing assistant. What can I help you with today?</p>
             <p class="el-user">Do you work weekends?</p>
-            <p>We're open 7 days a week, and a plumber can usually reach you within two hours. Want the team to call you to set a time?</p>
+            <p>Yes. We're open 7 days a week, and a plumber can usually reach you within two hours.</p>
           </div>
           <div class="el-input">
-            <span class="el-placeholder">Send a message...</span>
+            <span class="el-placeholder" data-input>Send a message...</span>
             <div class="el-buttons">
               <span class="el-round"><svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1.9.4 1.8.7 2.7a2 2 0 0 1-.5 2.1L8 9.8a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.6 2.7.7a2 2 0 0 1 1.7 2z"/></svg></span>
-              <span class="el-send"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5M5 12l7-7 7 7"/></svg></span>
+              <span class="el-send" data-send><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5M5 12l7-7 7 7"/></svg></span>
             </div>
           </div>
         </div>
@@ -76,4 +93,86 @@
   <h2>Hear it on your website.</h2>
   <a class="button" href="{{ url_for('demo_form') }}">Get a free demo</a>
 </section>
+
+{# Plays the example in the picture at the top. Visitors who turn off motion see it still. #}
+<script>
+{
+  const demo = document.querySelector("[data-hero-demo]");
+  if (demo && !matchMedia("(prefers-reduced-motion: reduce)").matches) {
+    // The example conversation. It follows the real assistant's rules: it answers first, offers
+    // once to have the team get in touch, and asks for contact details only after the yes.
+    const chat = [
+      ["bot", "Hi! I'm the Rivera Plumbing assistant. What can I help you with today?"],
+      ["user", "Do you work weekends?"],
+      ["bot", "Yes. We're open 7 days a week, and a plumber can usually reach you within two hours."],
+      ["user", "How much is a new water heater?"],
+      ["bot", "It depends on the tank size and whether it runs on gas or electric. Rivera gives free on-site estimates. Want the team to contact you to set one up?"],
+      ["user", "Yes please"],
+      ["bot", "Great. What's the best phone number to reach you?"],
+    ];
+    const pick = name => demo.querySelector(`[data-${name}]`);
+    const url = pick("url"), label = pick("crawl-label"), fill = pick("crawl-fill"), widget = pick("widget");
+    const log = pick("log"), input = pick("input"), send = pick("send");
+    const sleep = ms => new Promise(done => setTimeout(done, ms));
+    const SITE = "riveraplumbing.com", PAGES = 48;
+
+    function say(who, text) {
+      const line = document.createElement("p");
+      if (who === "user") line.className = "el-user";
+      line.textContent = text;
+      log.append(line);
+    }
+
+    async function readSite() {
+      widget.classList.add("hidden");
+      log.replaceChildren();
+      url.textContent = "";
+      for (const letter of SITE) { url.textContent += letter; await sleep(50); }
+      url.textContent += " (example)";
+      for (let page = 1; page <= PAGES; page++) {
+        label.textContent = `Reading ${SITE}: ${page} pages`;
+        fill.style.width = page / PAGES * 100 + "%";
+        await sleep(40);
+      }
+      label.textContent = "Assistant ready";
+      await sleep(500);
+      widget.classList.remove("hidden");
+      await sleep(300);
+    }
+
+    async function talk() {
+      for (const [who, text] of chat) {
+        if (who === "bot") {
+          const dots = document.createElement("div");
+          dots.className = "el-typing";
+          dots.innerHTML = "<i></i><i></i><i></i>";
+          log.append(dots);
+          await sleep(900);
+          dots.remove();
+          say("bot", text);
+          await sleep(1200 + text.length * 16);
+        } else {
+          input.classList.add("typed");
+          for (let i = 1; i <= text.length; i++) { input.textContent = text.slice(0, i); await sleep(55); }
+          send.classList.add("on");
+          await sleep(350);
+          input.textContent = "Send a message...";
+          input.classList.remove("typed");
+          send.classList.remove("on");
+          say("user", text);
+          await sleep(600);
+        }
+      }
+    }
+
+    (async () => {
+      for (;;) {
+        await readSite();
+        await talk();
+        await sleep(5000);
+      }
+    })();
+  }
+}
+</script>
 {% endblock %}
