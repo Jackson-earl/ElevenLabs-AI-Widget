@@ -91,7 +91,8 @@ h1 em { font-style: normal; color: var(--accent-text); }
 /* ---------------------------------------------------------------- Sections */
 
 h2 { font-size: 30px; line-height: 1.15; font-weight: 800; letter-spacing: -0.02em; text-align: center; }
-.section { display: grid; gap: 28px; padding: 56px 24px; }
+/* minmax(0, 1fr) keeps wide grids inside, such as the five pricing cards, from pushing past the screen. */
+.section { display: grid; grid-template-columns: minmax(0, 1fr); gap: 28px; padding: 56px 24px; }
 /* A pale cyan section, used to alternate with plain ones. */
 .soft { background: var(--soft); }
 .band { display: grid; justify-items: center; gap: 20px; padding: 56px 24px; color: var(--band-text); background: var(--band); }
@@ -148,12 +149,71 @@ h2 em { font-style: normal; color: var(--accent-text); }
 .el-collapse { width: 40px; height: 40px; border-radius: 50%; display: grid; place-items: center; background: #fff; box-shadow: 0 2px 10px rgb(0 0 0 / 0.15); }
 .el-collapse > span { width: 28px; height: 28px; border-radius: 50%; display: grid; place-items: center; color: #fff; background: #000; }
 
+/* ---------------------------------------------------------------- Pricing page */
+
+.hero-copy .actions { justify-content: flex-start; }
+/* A short line under a section heading. */
+.sub { max-width: 60ch; margin: -16px auto 0; text-align: center; color: var(--muted); }
+
+/* A list with a check mark before each line. */
+.ticks { display: grid; gap: 10px; margin: 0; padding: 0; list-style: none; }
+.ticks li { display: flex; align-items: center; gap: 10px; }
+.ticks li::before { content: ""; flex: none; width: 18px; height: 18px; border-radius: 50%; background: var(--accent-soft) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%230789a0' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 12 4 4 8-8'/%3E%3C/svg%3E") center / 11px no-repeat; }
+
+/* The plan card beside the pricing headline. */
+.pricing-top { grid-template-columns: 1fr 440px; gap: 64px; }
+.plan { display: grid; gap: 16px; padding: 32px; border-radius: 24px; background: var(--surface); box-shadow: 0 0 0 1px var(--line), 0 24px 48px -30px rgb(0 0 0 / 0.4); }
+.plan-name { font-size: 14px; font-weight: 700; color: var(--accent-text); }
+.amount { display: flex; align-items: baseline; gap: 6px; }
+.amount b { font-size: 60px; line-height: 1; font-weight: 800; letter-spacing: -0.03em; }
+.amount span { font-size: 17px; color: var(--muted); }
+.plan hr { width: 100%; margin: 2px 0; border: 0; border-top: 1px solid var(--line); }
+
+/* What we do every month: five cards that wrap onto more rows on smaller screens, with a short
+   last row stretching to fill the width. */
+.work { display: flex; flex-wrap: wrap; gap: 16px; width: 100%; max-width: 1100px; margin: 0 auto; }
+.work .feature { flex: 1 1 190px; padding: 22px 20px; }
+
+/* The sample reports. */
+.report { width: 100%; max-width: 860px; margin: 0 auto; padding: 24px; font-size: 14px; border-radius: 20px; background: var(--surface); box-shadow: 0 0 0 1px var(--line), 0 24px 48px -30px rgb(0 0 0 / 0.35); }
+.report-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; padding-bottom: 14px; border-bottom: 1px solid var(--line); }
+.report-head strong { display: block; font-size: 16px; }
+.report-head span { font-size: 13px; color: var(--muted); }
+.report-head .sample { flex: none; padding: 2px 10px; border-radius: 999px; font-size: 12px; font-weight: 600; color: var(--warning); background: var(--warning-soft); }
+.stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-top: 16px; }
+.stat { display: grid; gap: 2px; padding: 12px 14px; border-radius: 14px; background: var(--soft); }
+.stat span, .stat small { font-size: 12px; color: var(--muted); }
+.stat small { color: var(--success); }
+.stat b { font-size: 26px; font-variant-numeric: tabular-nums; }
+.report-cols { display: grid; grid-template-columns: 1fr 1fr; gap: 16px 28px; margin-top: 16px; }
+.report-cols h3 { margin: 0 0 6px; font-size: 13px; }
+.report-cols ul { display: grid; gap: 3px; margin: 0; padding-left: 18px; color: var(--muted); }
+/* How often each question was asked: the shaded part of each row is its share of the top question. */
+.asked { display: grid; gap: 6px; }
+.asked div { display: grid; grid-template-columns: 1fr 34px; gap: 8px; align-items: center; }
+.asked span { padding: 2px 8px; border-radius: 6px; color: var(--muted); background: linear-gradient(to right, var(--accent-soft) var(--share), transparent var(--share)); }
+.asked b { text-align: right; font-variant-numeric: tabular-nums; }
+
+/* Text beside a picture, such as the TouchStone section. */
+.split { display: grid; grid-template-columns: 1fr 1.15fr; gap: 56px; align-items: center; width: 100%; max-width: 1100px; margin: 0 auto; }
+.split-copy { display: grid; justify-items: start; gap: 18px; }
+.split-copy h2 { text-align: left; }
+.split-copy .lead { font-size: 16px; }
+.split .report { max-width: none; }
+.touchstone-more { display: flex; flex-wrap: wrap; align-items: center; gap: 14px; width: 100%; padding-top: 18px; border-top: 1px solid var(--line); }
+
+.faq { display: grid; grid-template-columns: 1fr 1fr; gap: 0 48px; width: 100%; max-width: 980px; margin: 0 auto; }
+.faq > div { padding: 18px 0; border-top: 1px solid var(--line); }
+.faq h3 { margin: 0 0 6px; font-size: 16px; }
+.faq p { font-size: 14px; color: var(--muted); }
+
 /* ---------------------------------------------------------------- Phones */
 
 @keyframes el-in { from { opacity: 0; transform: translateY(2px); } }
 @keyframes el-dot { 50% { opacity: 0.3; } }
 
 @media (max-width: 860px) {
+  .split { grid-template-columns: 1fr; gap: 32px; max-width: 640px; }
   .hero-split { grid-template-columns: 1fr; gap: 40px; max-width: 640px; padding-top: 36px; }
   .features { grid-template-columns: 1fr; max-width: 520px; }
 }
@@ -163,6 +223,10 @@ h2 em { font-style: normal; color: var(--accent-text); }
   .hero-split { gap: 32px; padding: 28px 18px 40px; }
   .hero-copy { gap: 16px; }
   .hero-copy .form { max-width: none; }
+  .plan { padding: 24px; }
+  .amount b { font-size: 48px; }
+  .report { padding: 18px; }
+  .stats, .report-cols, .faq { grid-template-columns: 1fr; }
   h1 { font-size: 36px; }
   h2 { font-size: 24px; }
   .lead { font-size: 16px; }

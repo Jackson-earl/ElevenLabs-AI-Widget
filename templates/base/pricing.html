@@ -1,6 +1,185 @@
 {% extends "base/site.html" %}
 {% block title %}Touchstone AI Automations: Pricing for your best salesman.{% endblock %}
 {% block content %}
+{# The free trial buttons go to the intake form until there is a separate trial signup. #}
+{% set included = ["Customized Answer Agent", "Website installation", "Voice and text conversations",
+                   "Lead capture and notifications", "Monthly resource center development", "Knowledge base updates",
+                   "Customer conversation analysis", "Ongoing agent improvements", "Monthly performance report",
+                   "Technical support"] %}
+<section class="hero-split pricing-top">
+  <div class="hero-copy">
+    <span class="pill">Pricing</span>
+    <h1>One simple <em>monthly subscription.</em></h1>
+    <p class="lead">Your Answer Agent, installed on your website and improved by our team every month. No contract, and standard setup is free.</p>
+    <div class="actions">
+      <a class="button" href="{{ url_for('intake') }}">Try it free for 7 days</a>
+      <a class="button ghost" href="{{ url_for('demo_form') }}">See a free demo</a>
+    </div>
+  </div>
 
+  <div class="plan">
+    <span class="plan-name">Answer Agent</span>
+    <p class="amount"><b>$199</b><span>/month</span></p>
+    <p class="fine">Free standard setup. Month-to-month subscription.</p>
+    <hr>
+    <ul class="ticks">
+      {% for item in included %}<li>{{ item }}</li>{% endfor %}
+    </ul>
+    <a class="button" href="{{ url_for('intake') }}">Try it free for 7 days</a>
+  </div>
+</section>
 
+<section class="section soft">
+  <h2>What we do for you <em>every month</em></h2>
+  <p class="sub">Your agent keeps getting better after it goes live. All of this is included in the $199.</p>
+  <div class="work">
+    <div class="feature">
+      <span class="icon"><svg viewBox="0 0 24 24"><path d="M4 5a2 2 0 0 1 2-2h13v16H6a2 2 0 0 0-2 2z"/><path d="M4 19V5"/></svg></span>
+      <h3>Build your resource center</h3>
+      <p>Create and update FAQs, articles and helpful customer information.</p>
+    </div>
+    <div class="feature">
+      <span class="icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 8v8M8 12h8"/></svg></span>
+      <h3>Expand your agent's knowledge</h3>
+      <p>Identify missing information and improve the agent's answers.</p>
+    </div>
+    <div class="feature">
+      <span class="icon"><svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></span>
+      <h3>Analyze customer conversations</h3>
+      <p>Discover what customers are asking and find opportunities to improve.</p>
+    </div>
+    <div class="feature">
+      <span class="icon"><svg viewBox="0 0 24 24"><path d="M3 17l6-6 4 4 8-8"/><path d="M14 7h7v7"/></svg></span>
+      <h3>Improve agent performance</h3>
+      <p>Refine responses and improve customer engagement.</p>
+    </div>
+    <div class="feature">
+      <span class="icon"><svg viewBox="0 0 24 24"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M8 15v2M12 11v6M16 8v9"/></svg></span>
+      <h3>Provide monthly reports</h3>
+      <p>How your agent is performing, what we've improved and what we recommend next.</p>
+    </div>
+  </div>
+</section>
+
+{# A made-up example of the monthly report. Rivera Plumbing and every number here are examples. #}
+<section class="section">
+  <h2>Sample monthly performance report</h2>
+  <p class="sub">Every month you get a short report like this one.</p>
+  <div class="report">
+    <div class="report-head">
+      <div><strong>Monthly performance report</strong><span>Rivera Plumbing (example), October</span></div>
+      <span class="sample">Sample</span>
+    </div>
+    <div class="stats">
+      <div class="stat"><span>Customer conversations</span><b>412</b><small>+18% from September</small></div>
+      <div class="stat"><span>Leads captured</span><b>37</b><small>+9 from September</small></div>
+      <div class="stat"><span>Answered without a person</span><b>91%</b><small>+4 points</small></div>
+    </div>
+    <div class="report-cols">
+      <div>
+        <h3>Frequently asked questions</h3>
+        <div class="asked">
+          {% for question, times in [("Water heater prices", 41), ("Weekend and emergency service", 33), ("Service area", 27), ("Drain cleaning cost", 19)] %}
+          <div><span style="--share: {{ (times / 41 * 100) | round }}%">{{ question }}</span><b>{{ times }}</b></div>
+          {% endfor %}
+        </div>
+      </div>
+      <div>
+        <h3>Recommended next steps</h3>
+        <ul><li>Publish water heater price ranges</li><li>Add a tankless water heater page</li><li>Offer Saturday estimate slots</li></ul>
+      </div>
+      <div>
+        <h3>Resource center updates</h3>
+        <ul><li>3 new articles, including "Gas or electric water heater?"</li><li>FAQ page updated with 6 answers</li></ul>
+      </div>
+      <div>
+        <h3>Knowledge base improvements</h3>
+        <ul><li>Added weekend and holiday rates</li><li>Corrected the service area to include Elk Grove</li></ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="section soft">
+  <div class="split">
+    <div class="split-copy">
+      <span class="pill">For TouchStone customers</span>
+      <h2>Additional benefits for <em>TouchStone</em> customers</h2>
+      <p class="lead">TouchStone subscribers also receive a monthly Business Process Improvement Report, including:</p>
+      <ul class="ticks">
+        <li>Recommended process improvements</li>
+        <li>New processes to document</li>
+        <li>Employee training recommendations</li>
+        <li>Sales and customer service improvements</li>
+        <li>Opportunities for additional AI automations</li>
+      </ul>
+      <div class="touchstone-more">
+        <span class="fine">Don't have TouchStone?</span>
+        <a class="button ghost small" href="https://www.businessdesigncorp.com" target="_blank" rel="noopener">Learn more about TouchStone</a>
+      </div>
+    </div>
+
+    {# A made-up example, like the report above. #}
+    <div class="report">
+      <div class="report-head">
+        <div><strong>Business process improvement report</strong><span>Rivera Plumbing (example), October</span></div>
+        <span class="sample">Sample</span>
+      </div>
+      <div class="report-cols">
+        <div><h3>Recommended process improvements</h3><ul><li>Confirm estimate requests by text within one hour</li></ul></div>
+        <div><h3>New processes to document</h3><ul><li>How the team handles after-hours emergencies</li></ul></div>
+        <div><h3>Employee training recommendations</h3><ul><li>Water heater pricing, asked about 41 times this month</li></ul></div>
+        <div><h3>Sales and customer service</h3><ul><li>Follow up on 12 estimate requests that weren't booked</li></ul></div>
+        <div><h3>More AI automations</h3><ul><li>Automatic appointment reminders by text</li></ul></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="section">
+  <h2>Frequently asked questions</h2>
+  <div class="faq">
+    <div>
+      <h3>How does setup work?</h3>
+      <p>You fill out a short form about your business. We read your website, build your agent, test it, and install it on your site. Standard setup is free.</p>
+    </div>
+    <div>
+      <h3>Will it work with my website?</h3>
+      <p>It works on any site that lets you add a small piece of code, including WordPress, Squarespace, Wix, Shopify and custom sites. We can install it for you.</p>
+    </div>
+    {# DRAFT: confirm how the trial works before going live. #}
+    <div>
+      <h3>How does the free trial work?</h3>
+      <p>Your agent runs on your website for 7 days at no charge. If you decide not to continue, we switch it off.</p>
+    </div>
+    <div>
+      <h3>Is there a contract?</h3>
+      <p>No. The subscription is month-to-month at $199 a month.</p>
+    </div>
+    {# DRAFT: confirm the usage limit before going live, and add a number if there is one. #}
+    <div>
+      <h3>Are there usage limits?</h3>
+      <p>Normal use is included. If your website gets unusually heavy traffic, we'll talk with you before anything changes.</p>
+    </div>
+    {# DRAFT: confirm the cancellation terms before going live. #}
+    <div>
+      <h3>How do I cancel?</h3>
+      <p>Tell us any time before your next billing date. Your agent keeps working until the end of that month, and you won't be charged again.</p>
+    </div>
+    <div>
+      <h3>Do I need TouchStone?</h3>
+      <p>No. The Answer Agent works on its own. TouchStone subscribers also get a monthly Business Process Improvement Report.</p>
+    </div>
+    <div>
+      <h3>Will it make things up?</h3>
+      <p>No. It answers from your website and the information you give us. When it isn't sure, it offers to connect the visitor with your team.</p>
+    </div>
+  </div>
+</section>
+
+<section class="band">
+  <h2>Start your free trial</h2>
+  <p>7 days free. Free standard setup. Month-to-month subscription.</p>
+  <a class="button" href="{{ url_for('intake') }}">Start your free trial</a>
+</section>
 {% endblock %}

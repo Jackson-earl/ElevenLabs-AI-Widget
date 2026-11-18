@@ -5,5 +5,6 @@
     <span>Touchstone<span class="logo-rest public"> AI Automations</span></span>
   </a>
   <a class="nav-link public" href="{{ url_for('home') }}#how">How it works</a>
+  <a class="nav-link" href="{{ url_for('pricing') }}"{% if request.endpoint == 'pricing' %} aria-current="page"{% endif %}>Pricing</a>
   <a class="button small" href="{{ url_for('demo_form') }}">Free demo</a>
 </nav>

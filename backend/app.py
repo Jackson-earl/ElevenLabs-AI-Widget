@@ -45,6 +45,11 @@ def home():
     return render_template("base/home.html")
 
 
+@app.get("/pricing")
+def pricing():
+    return render_template("base/pricing.html")
+
+
 @app.get("/start")
 def intake():
     # request.args are the values after "?" in the address. The demo page links here with
